@@ -17,7 +17,7 @@ contract AaveImportTakerV2 is DydxFlashLoanBase, ProxyPermission {
 
     address public constant WETH_ADDR = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    address payable public constant AAVE_IMPORT = 0x1C9B7FBD410Adcd213C5d6CBA12e651300061eaD;
+    address payable public constant AAVE_IMPORT = 0x9d4F3983f7435fd4D3e6432810e36A6762e89BD1;
     address public constant DEFISAVER_LOGGER = 0x5c55B921f590a89C1Ebe84dF170E655a82b62126;
     address public constant PROXY_REGISTRY_ADDRESS = 0x4678f0a6958e4D2Bc4F1BAF7Bc52E8F3564f3fE4;
 

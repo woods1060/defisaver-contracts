@@ -21,7 +21,7 @@ contract AaveImportV2 is AaveHelperV2, AdminAuth {
 
     using SafeERC20 for ERC20;
 
-    address public constant BASIC_PROXY = 0xc17c8eB12Ba24D62E69fd57cbd504EEf418867f9;
+    address public constant BASIC_PROXY = 0x7Fa43925CCdffD08d32005a91B7d32d72500266a;
     address public constant PULL_TOKENS_PROXY = 0x45431b79F783e0BF0fe7eF32D06A3e061780bfc4;
 
     function callFunction(
@@ -56,12 +56,12 @@ contract AaveImportV2 is AaveHelperV2, AdminAuth {
             (, uint256 borrowsStable, uint256 borrowsVariable,,,,,,) = dataProvider.getUserReserveData(borrowToken, user);
 
             if (borrowsStable > 0) {
-                DSProxy(payable(proxy)).execute(BASIC_PROXY, abi.encodeWithSignature("borrow(address,address,uint256,uint256)", market, borrowToken, borrowsStable, STABLE_ID));
+                DSProxy(payable(proxy)).execute(BASIC_PROXY, abi.encodeWithSignature("borrowNoUnwrap(address,address,uint256,uint256)", market, borrowToken, borrowsStable, STABLE_ID));
                 globalBorrowAmountStable = borrowsStable;
             }
 
             if (borrowsVariable > 0) {
-                DSProxy(payable(proxy)).execute(BASIC_PROXY, abi.encodeWithSignature("borrow(address,address,uint256,uint256)", market, borrowToken, borrowsVariable, VARIABLE_ID));
+                DSProxy(payable(proxy)).execute(BASIC_PROXY, abi.encodeWithSignature("borrowNoUnwrap(address,address,uint256,uint256)", market, borrowToken, borrowsVariable, VARIABLE_ID));
                 globalBorrowAmountVariable = borrowsVariable;
             }
         }
