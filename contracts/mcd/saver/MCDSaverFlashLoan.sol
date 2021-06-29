@@ -29,10 +29,6 @@ contract MCDSaverFlashLoan is MCDSaverProxy, AdminAuth, FlashLoanReceiverBase {
         bytes calldata _params)
     external override {
 
-        //check the contract has the specified balance
-        require(_amount <= getBalanceInternal(address(this), _reserve),
-            "Invalid balance for the contract");
-
         (
             bytes memory exDataBytes,
             uint cdpId,
@@ -117,7 +113,6 @@ contract MCDSaverFlashLoan is MCDSaverProxy, AdminAuth, FlashLoanReceiverBase {
         (, uint paybackAmount) = _sell(_exchangeData);
 
         paybackAmount -= takeFee(_saverData.gasCost, paybackAmount);
-        paybackAmount = limitLoanAmount(managerAddr, _saverData.cdpId, ilk, paybackAmount, user);
 
         // Payback the debt
         paybackDebt(managerAddr, _saverData.cdpId, ilk, paybackAmount, user);
@@ -126,32 +121,6 @@ contract MCDSaverFlashLoan is MCDSaverProxy, AdminAuth, FlashLoanReceiverBase {
         drawCollateral(managerAddr, _saverData.cdpId, _saverData.joinAddr, (_saverData.loanAmount + _saverData.fee));
 
         logger.Log(address(this), msg.sender, "MCDFlashRepay", abi.encode(_saverData.cdpId, user, _exchangeData.srcAmount, paybackAmount));
-    }
-
-    /// @notice Handles that the amount is not bigger than cdp debt and not dust
-    function limitLoanAmount(address _managerAddr, uint _cdpId, bytes32 _ilk, uint _paybackAmount, address _owner) internal returns (uint256) {
-        uint debt = getAllDebt(address(vat), Manager(_managerAddr).urns(_cdpId), Manager(_managerAddr).urns(_cdpId), _ilk);
-
-        if (_paybackAmount > debt) {
-            ERC20(DAI_ADDRESS).transfer(_owner, (_paybackAmount - debt));
-            return debt;
-        }
-
-        uint debtLeft = debt - _paybackAmount;
-
-        (,,,, uint dust) = vat.ilks(_ilk);
-        dust = dust / 10**27;
-
-        // Less than dust value
-        if (debtLeft < dust) {
-            uint amountOverDust = (dust - debtLeft);
-
-            ERC20(DAI_ADDRESS).transfer(_owner, amountOverDust);
-
-            return (_paybackAmount - amountOverDust);
-        }
-
-        return _paybackAmount;
     }
 
     receive() external override(FlashLoanReceiverBase, DFSExchangeCore) payable {}
