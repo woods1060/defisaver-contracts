@@ -75,6 +75,20 @@ contract AaveBasicProxyV2 is GasBurner, AaveHelperV2 {
         withdrawTokens(_tokenAddr);
     }
 
+    /// @notice User borrows tokens to the Aave protocol
+    /// @param _market address provider for specific market
+    /// @param _tokenAddr The address of the token to be borrowed
+    /// @param _amount Amount of tokens to be borrowed
+    /// @param _type Send 1 for stable rate and 2 for variable
+    function borrowNoUnwrap(address _market, address _tokenAddr, uint256 _amount, uint256 _type) public burnGas(8) {
+        address lendingPool = ILendingPoolAddressesProviderV2(_market).getLendingPool();
+        _tokenAddr = changeToWeth(_tokenAddr);
+
+        ILendingPoolV2(lendingPool).borrow(_tokenAddr, _amount, _type, AAVE_REFERRAL_CODE, address(this));
+
+        withdrawTokens(_tokenAddr);
+    }
+
     /// @dev User needs to approve the DSProxy to pull the _tokenAddr tokens
     /// @dev Leaving this method so it doesn't break anything for frontend
     /// @notice User paybacks tokens to the Aave protocol
@@ -124,7 +138,11 @@ contract AaveBasicProxyV2 is GasBurner, AaveHelperV2 {
         _tokenAddr = changeToWeth(_tokenAddr);
 
         if (_tokenAddr == WETH_ADDRESS) {
-            TokenInterface(WETH_ADDRESS).deposit{value: msg.value}();
+            if (msg.value != 0) {
+                TokenInterface(WETH_ADDRESS).deposit{value: msg.value}();
+            } else {
+                ERC20(_tokenAddr).safeTransferFrom(msg.sender, address(this), _amount);
+            }
         } else {
             uint amountToPull = min(_amount, ERC20(_tokenAddr).allowance(msg.sender, address(this)));
             ERC20(_tokenAddr).safeTransferFrom(msg.sender, address(this), amountToPull);
@@ -132,12 +150,6 @@ contract AaveBasicProxyV2 is GasBurner, AaveHelperV2 {
 
         approveToken(_tokenAddr, lendingPool);
         ILendingPoolV2(lendingPool).repay(_tokenAddr, _amount, _rateMode, _onBehalf);
-
-        if (_tokenAddr == WETH_ADDRESS) {
-            // we do this so the user gets eth instead of weth
-            TokenInterface(WETH_ADDRESS).withdraw(_amount);
-            _tokenAddr = ETH_ADDR;
-        }
 
         withdrawTokens(_tokenAddr);
     }
