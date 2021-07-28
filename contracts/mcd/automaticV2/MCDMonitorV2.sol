@@ -20,9 +20,6 @@ import "./MCDMonitorProxyV2.sol";
 /// @title Implements logic that allows bots to call Boost and Repay
 contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
 
-    uint public REPAY_GAS_TOKEN = 25;
-    uint public BOOST_GAS_TOKEN = 25;
-
     uint public MAX_GAS_PRICE = 800000000000; // 800 gwei
 
     uint public REPAY_GAS_COST = 1000000;
@@ -63,7 +60,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
         uint _cdpId,
         uint _nextPrice,
         address _joinAddr
-    ) public payable onlyApproved burnGas(REPAY_GAS_TOKEN) {
+    ) public payable onlyApproved {
 
         (bool isAllowed, uint ratioBefore) = canCall(Method.Repay, _cdpId, _nextPrice);
         require(isAllowed);
@@ -93,7 +90,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
         uint _cdpId,
         uint _nextPrice,
         address _joinAddr
-    ) public payable onlyApproved burnGas(BOOST_GAS_TOKEN)  {
+    ) public payable onlyApproved {
 
         (bool isAllowed, uint ratioBefore) = canCall(Method.Boost, _cdpId, _nextPrice);
         require(isAllowed);
@@ -242,16 +239,5 @@ contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
         require(_maxGasPrice < 1000000000000);
 
         MAX_GAS_PRICE = _maxGasPrice;
-    }
-
-    /// @notice Allows owner to change the amount of gas token burned per function call
-    /// @param _gasAmount Amount of gas token
-    /// @param _isRepay Flag to know for which function we are setting the gas token amount
-    function changeGasTokenAmount(uint _gasAmount, bool _isRepay) public onlyOwner {
-        if (_isRepay) {
-            REPAY_GAS_TOKEN = _gasAmount;
-        } else {
-            BOOST_GAS_TOKEN = _gasAmount;
-        }
     }
 }
