@@ -82,37 +82,12 @@ contract AaveMigrationTaker is ProxyPermission {
 
         removePermission(_aaveMigrationReceiverAddr);
 
-        unsubAutomationInNeeded(userProxy);
-
         logger.Log(
             address(this),
             msg.sender,
             "AaveMigration",
             abi.encode(_collTokens, _borrowTokens)
         );
-    }
-
-    function unsubAutomationInNeeded(address _userProxy) internal {
-        AaveSubscriptions aaveSubV1 = AaveSubscriptions(AAVE_V1_SUBSCRIPTION_ADDR);
-        AaveSubscriptionsV2 aaveSubV2 = AaveSubscriptionsV2(AAVE_V2_SUBSCRIPTION_ADDR);
-
-        if (aaveSubV1.isSubscribed(_userProxy)) {
-            AaveSubscriptions.AaveHolder memory holder = aaveSubV1.getHolder(_userProxy);
-
-            // unsub and remove old permission
-            aaveSubV1.unsubscribe();
-            removePermission(AAVE_V1_MONITOR_PROXY);
-
-            // sub and add permission
-            givePermission(AAVE_V2_MONITOR_PROXY);
-            aaveSubV2.subscribe(
-                holder.minRatio,
-                holder.maxRatio,
-                holder.optimalRatioBoost,
-                holder.optimalRatioRepay,
-                holder.boostEnabled
-            );
-        }
     }
 
     function getUserBorrows(address _user, address[] memory _borrowTokens)
