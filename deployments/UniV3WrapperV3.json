@@ -1,22 +1,9 @@
 {
-	"contractName": "AaveMigrationReceiver",
+	"contractName": "UniV3WrapperV3",
 	"abi": [
 		{
 			"inputs": [],
-			"name": "AAVE_MIGRATION_ADDR",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "AAVE_V2_LENDING_POOL",
+			"name": "KYBER_ETH_ADDRESS",
 			"outputs": [
 				{
 					"internalType": "address",
@@ -43,37 +30,100 @@
 		{
 			"inputs": [
 				{
-					"internalType": "address[]",
-					"name": "borrowAssets",
-					"type": "address[]"
-				},
-				{
-					"internalType": "uint256[]",
-					"name": "amounts",
-					"type": "uint256[]"
-				},
-				{
-					"internalType": "uint256[]",
-					"name": "fees",
-					"type": "uint256[]"
-				},
-				{
 					"internalType": "address",
-					"name": "initiator",
+					"name": "_srcAddr",
 					"type": "address"
 				},
 				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_destAmount",
+					"type": "uint256"
+				},
+				{
 					"internalType": "bytes",
-					"name": "params",
+					"name": "_additionalData",
 					"type": "bytes"
 				}
 			],
-			"name": "executeOperation",
+			"name": "buy",
 			"outputs": [
 				{
-					"internalType": "bool",
+					"internalType": "uint256",
 					"name": "",
-					"type": "bool"
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "payable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_destAmount",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bytes",
+					"name": "_additionalData",
+					"type": "bytes"
+				}
+			],
+			"name": "getBuyRate",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_srcAmount",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bytes",
+					"name": "_additionalData",
+					"type": "bytes"
+				}
+			],
+			"name": "getSellRate",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
 				}
 			],
 			"stateMutability": "nonpayable",
@@ -100,16 +150,63 @@
 			"type": "function"
 		},
 		{
-			"inputs": [
+			"inputs": [],
+			"name": "quoter",
+			"outputs": [
 				{
-					"internalType": "address",
-					"name": "_aaveMigrationAddr",
+					"internalType": "contract IQuoter",
+					"name": "",
 					"type": "address"
 				}
 			],
-			"name": "setAaveMigrationAddr",
-			"outputs": [],
-			"stateMutability": "nonpayable",
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "router",
+			"outputs": [
+				{
+					"internalType": "contract ISwapRouter",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "_srcAddr",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "_srcAmount",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bytes",
+					"name": "_additionalData",
+					"type": "bytes"
+				}
+			],
+			"name": "sell",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "payable",
 			"type": "function"
 		},
 		{
@@ -176,7 +273,7 @@
 	],
 	"networks": {
 		"local": {
-			"address": "0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f",
+			"address": "0xa6e99A4ED7498b3cdDCBB61a6A607a4925Faa1B7",
 			"args": []
 		}
 	}

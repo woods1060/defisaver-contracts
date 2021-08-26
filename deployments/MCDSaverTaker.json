@@ -198,19 +198,6 @@
 		},
 		{
 			"inputs": [],
-			"name": "MANAGER_ADDRESS",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
 			"name": "MANUAL_SERVICE_FEE",
 			"outputs": [
 				{
@@ -276,10 +263,10 @@
 		},
 		{
 			"inputs": [],
-			"name": "WALLET_ID",
+			"name": "ZRX_ALLOWLIST_ADDR",
 			"outputs": [
 				{
-					"internalType": "address payable",
+					"internalType": "address",
 					"name": "",
 					"type": "address"
 				}
@@ -289,10 +276,10 @@
 		},
 		{
 			"inputs": [],
-			"name": "ZRX_ALLOWLIST_ADDR",
+			"name": "_feeRecipient",
 			"outputs": [
 				{
-					"internalType": "address",
+					"internalType": "contract IFeeRecipient",
 					"name": "",
 					"type": "address"
 				}
@@ -405,6 +392,11 @@
 					"internalType": "address",
 					"name": "_joinAddr",
 					"type": "address"
+				},
+				{
+					"internalType": "enum MCDSaverProxyHelper.ManagerType",
+					"name": "_managerType",
+					"type": "uint8"
 				}
 			],
 			"name": "boost",
@@ -517,6 +509,11 @@
 					"internalType": "address",
 					"name": "_joinAddr",
 					"type": "address"
+				},
+				{
+					"internalType": "enum MCDSaverProxyHelper.ManagerType",
+					"name": "_managerType",
+					"type": "uint8"
 				}
 			],
 			"name": "boostWithLoan",
@@ -545,40 +542,6 @@
 					"internalType": "contract GasTokenInterface",
 					"name": "",
 					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "_cdpId",
-					"type": "uint256"
-				}
-			],
-			"name": "getCdpDetailedInfo",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "collateral",
-					"type": "uint256"
-				},
-				{
-					"internalType": "uint256",
-					"name": "debt",
-					"type": "uint256"
-				},
-				{
-					"internalType": "uint256",
-					"name": "price",
-					"type": "uint256"
-				},
-				{
-					"internalType": "bytes32",
-					"name": "ilk",
-					"type": "bytes32"
 				}
 			],
 			"stateMutability": "view",
@@ -621,6 +584,30 @@
 		{
 			"inputs": [
 				{
+					"internalType": "enum MCDSaverProxyHelper.ManagerType",
+					"name": "_managerType",
+					"type": "uint8"
+				}
+			],
+			"name": "getManagerAddr",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "pure",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "_managerAddr",
+					"type": "address"
+				},
+				{
 					"internalType": "uint256",
 					"name": "_cdpId",
 					"type": "uint256"
@@ -649,6 +636,11 @@
 		},
 		{
 			"inputs": [
+				{
+					"internalType": "address",
+					"name": "_managerAddr",
+					"type": "address"
+				},
 				{
 					"internalType": "uint256",
 					"name": "_cdpId",
@@ -715,30 +707,6 @@
 			"type": "function"
 		},
 		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "_cdpId",
-					"type": "uint256"
-				},
-				{
-					"internalType": "bytes32",
-					"name": "_ilk",
-					"type": "bytes32"
-				}
-			],
-			"name": "getRatio",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
 			"inputs": [],
 			"name": "lendingPool",
 			"outputs": [
@@ -757,19 +725,6 @@
 			"outputs": [
 				{
 					"internalType": "contract DefisaverLogger",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "manager",
-			"outputs": [
-				{
-					"internalType": "contract Manager",
 					"name": "",
 					"type": "address"
 				}
@@ -985,6 +940,11 @@
 					"internalType": "address",
 					"name": "_joinAddr",
 					"type": "address"
+				},
+				{
+					"internalType": "enum MCDSaverProxyHelper.ManagerType",
+					"name": "_managerType",
+					"type": "uint8"
 				}
 			],
 			"name": "repay",
@@ -1097,6 +1057,11 @@
 					"internalType": "address",
 					"name": "_joinAddr",
 					"type": "address"
+				},
+				{
+					"internalType": "enum MCDSaverProxyHelper.ManagerType",
+					"name": "_managerType",
+					"type": "uint8"
 				}
 			],
 			"name": "repayWithLoan",
@@ -1239,8 +1204,8 @@
 		}
 	],
 	"networks": {
-		"mainnet": {
-			"address": "0x939786Ee0d4e910720eC61bbd468815eb8df3e07",
+		"local": {
+			"address": "0x5302E909d1e93e30F05B5D6Eea766363D14F9892",
 			"args": []
 		}
 	}
