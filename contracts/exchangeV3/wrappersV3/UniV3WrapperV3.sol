@@ -8,8 +8,6 @@ import "../../interfaces/IQuoter.sol";
 import "../../auth/AdminAuth.sol";
 import "../../DS/DSMath.sol";
 
-import "hardhat/console.sol";
-
 /// @title DFS exchange wrapper for UniswapV3
 contract UniV3WrapperV3 is DSMath, ExchangeInterfaceV3, AdminAuth {
     using SafeERC20 for ERC20;
@@ -29,7 +27,6 @@ contract UniV3WrapperV3 is DSMath, ExchangeInterfaceV3, AdminAuth {
         uint256 _srcAmount,
         bytes calldata _additionalData
     ) external payable override returns (uint256) {
-        console.log("UniV3 HI");
         ERC20(_srcAddr).safeApprove(address(router), _srcAmount);
 
         ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
@@ -39,20 +36,9 @@ contract UniV3WrapperV3 is DSMath, ExchangeInterfaceV3, AdminAuth {
             amountIn: _srcAmount,
             amountOutMinimum: 1
         });
-        //          struct ExactInputParams {
-        // bytes path;
-        // address recipient;
-        // uint256 deadline;
-        // uint256 amountIn;
-        // uint256 amountOutMinimum;
-   // }
+    
+        uint256 amountOut = router.exactInput(params);
 
-    console.log(params.recipient, params.deadline, params.amountIn, params.amountOutMinimum);
-    console.log(ERC20(_srcAddr).balanceOf(address(this)));
-
-                uint256 amountOut = router.exactInput(params);
-
-        console.log(amountOut);
         return amountOut;
     }
 
