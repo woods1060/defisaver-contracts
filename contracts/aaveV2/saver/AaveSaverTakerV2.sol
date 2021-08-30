@@ -1,7 +1,6 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "../../utils/GasBurner.sol";
 import "../../auth/AdminAuth.sol";
 import "../../auth/ProxyPermission.sol";
 import "../../utils/DydxFlashLoanBase.sol";
@@ -13,7 +12,7 @@ import "../../exchangeV3/DFSExchangeData.sol";
 
 /// @title Import Aave position from account to wallet
 /// @dev Contract needs to have enough wei in WETH for all transactions (2 WETH wei per transaction)
-contract AaveSaverTakerV2 is DydxFlashLoanBase, ProxyPermission, GasBurner, DFSExchangeData {
+contract AaveSaverTakerV2 is DydxFlashLoanBase, ProxyPermission, DFSExchangeData {
 
     address public constant WETH_ADDR = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address payable public constant AAVE_RECEIVER = 0x5a7689F1452d57E92878e0c0Be47cA3525e8Fcc9;

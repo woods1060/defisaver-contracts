@@ -1,7 +1,6 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "../../utils/GasBurner.sol";
 import "../../DS/DSMath.sol";
 import "../../auth/AdminAuth.sol";
 import "../../loggers/DefisaverLogger.sol";
@@ -11,7 +10,7 @@ import "./AaveSubscriptionsV2.sol";
 import "../AaveSafetyRatioV2.sol";
 
 /// @title Contract implements logic of calling boost/repay in the automatic system
-contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2, GasBurner {
+contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2 {
 
     using SafeERC20 for ERC20;
 
@@ -59,7 +58,7 @@ contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2, GasBurner {
         address _user,
         uint256 _rateMode,
         uint256 _flAmount
-    ) public payable onlyApproved burnGas(REPAY_GAS_TOKEN) {
+    ) public payable onlyApproved {
 
         (bool isAllowed, uint ratioBefore) = canCall(Method.Repay, _user);
         require(isAllowed); // check if conditions are met
@@ -96,7 +95,7 @@ contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2, GasBurner {
         address _user,
         uint256 _rateMode,
         uint256 _flAmount
-    ) public payable onlyApproved burnGas(BOOST_GAS_TOKEN) {
+    ) public payable onlyApproved {
 
         (bool isAllowed, uint ratioBefore) = canCall(Method.Boost, _user);
         require(isAllowed); // check if conditions are met

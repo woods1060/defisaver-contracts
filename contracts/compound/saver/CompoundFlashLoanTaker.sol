@@ -1,14 +1,13 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "../../utils/GasBurner.sol";
 import "../../interfaces/ILendingPool.sol";
 import "./CompoundSaverProxy.sol";
 import "../../loggers/DefisaverLogger.sol";
 import "../../auth/ProxyPermission.sol";
 
 /// @title Entry point for the FL Repay Boosts, called by DSProxy
-contract CompoundFlashLoanTaker is CompoundSaverProxy, ProxyPermission, GasBurner {
+contract CompoundFlashLoanTaker is CompoundSaverProxy, ProxyPermission {
     ILendingPool public constant lendingPool = ILendingPool(0x398eC7346DcD622eDc5ae82352F02bE94C62d119);
 
     address payable public constant COMPOUND_SAVER_FLASH_LOAN = 0xAd9b95B3C3645df1008118FA118195C446F967e8;
@@ -22,7 +21,7 @@ contract CompoundFlashLoanTaker is CompoundSaverProxy, ProxyPermission, GasBurne
         ExchangeData memory _exData,
         address[2] memory _cAddresses, // cCollAddress, cBorrowAddress
         uint256 _gasCost
-    ) public payable burnGas(25) {
+    ) public payable {
         uint maxColl = getMaxCollateral(_cAddresses[0], address(this));
         uint availableLiquidity = getAvailableLiquidity(_exData.srcAddr);
 
@@ -55,7 +54,7 @@ contract CompoundFlashLoanTaker is CompoundSaverProxy, ProxyPermission, GasBurne
         ExchangeData memory _exData,
         address[2] memory _cAddresses, // cCollAddress, cBorrowAddress
         uint256 _gasCost
-    ) public payable burnGas(20) {
+    ) public payable {
         uint maxBorrow = getMaxBorrow(_cAddresses[1], address(this));
         uint availableLiquidity = getAvailableLiquidity(_exData.srcAddr);
 

@@ -2,10 +2,8 @@ pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
 import "../../utils/BotRegistry.sol";
-import "../../utils/GasBurner.sol";
 import "./CompoundMonitorProxy.sol";
 import "./CompoundSubscriptions.sol";
-import "../../interfaces/GasTokenInterface.sol";
 import "../../DS/DSMath.sol";
 import "../../auth/AdminAuth.sol";
 import "../../loggers/DefisaverLogger.sol";
@@ -13,7 +11,7 @@ import "../CompoundSafetyRatio.sol";
 import "../../exchangeV3/DFSExchangeData.sol";
 
 /// @title Contract implements logic of calling boost/repay in the automatic system
-contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio, GasBurner {
+contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
 
     using SafeERC20 for ERC20;
 
@@ -60,7 +58,7 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio, GasBurner {
         DFSExchangeData.ExchangeData memory _exData,
         address[2] memory _cAddresses, // cCollAddress, cBorrowAddress
         address _user
-    ) public payable onlyApproved burnGas(REPAY_GAS_TOKEN) {
+    ) public payable onlyApproved {
 
         (bool isAllowed, uint ratioBefore) = canCall(Method.Repay, _user);
         require(isAllowed); // check if conditions are met
@@ -95,7 +93,7 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio, GasBurner {
         DFSExchangeData.ExchangeData memory _exData,
         address[2] memory _cAddresses, // cCollAddress, cBorrowAddress
         address _user
-    ) public payable onlyApproved burnGas(BOOST_GAS_TOKEN) {
+    ) public payable onlyApproved  {
 
         (bool isAllowed, uint ratioBefore) = canCall(Method.Boost, _user);
         require(isAllowed); // check if conditions are met

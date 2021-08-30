@@ -8,7 +8,6 @@ import "../../interfaces/Spotter.sol";
 import "../../DS/DSMath.sol";
 import "../../auth/AdminAuth.sol";
 import "../../loggers/DefisaverLogger.sol";
-import "../../utils/GasBurner.sol";
 import "../../utils/BotRegistry.sol";
 import "../../exchangeV3/DFSExchangeData.sol";
 
@@ -18,7 +17,7 @@ import "./MCDMonitorProxyV2.sol";
 
 
 /// @title Implements logic that allows bots to call Boost and Repay
-contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
+contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
 
     uint public MAX_GAS_PRICE = 800000000000; // 800 gwei
 
@@ -67,10 +66,10 @@ contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
 
         uint gasCost = calcGasCost(REPAY_GAS_COST);
 
-        address owner = subscriptionsContract.getOwner(_cdpId);
+        address usersProxy = subscriptionsContract.getOwner(_cdpId);
 
         monitorProxyContract.callExecute{value: msg.value}(
-            owner,
+            usersProxy,
             mcdSaverTakerAddress,
             abi.encodeWithSelector(REPAY_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0));
 
@@ -80,7 +79,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
 
         returnEth();
 
-        logger.Log(address(this), owner, "AutomaticMCDRepay", abi.encode(ratioBefore, ratioAfter));
+        logger.Log(address(this), usersProxy, "AutomaticMCDRepay", abi.encode(ratioBefore, ratioAfter));
     }
 
     /// @notice Bots call this method to boost for user when conditions are met
@@ -97,10 +96,10 @@ contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
 
         uint gasCost = calcGasCost(BOOST_GAS_COST);
 
-        address owner = subscriptionsContract.getOwner(_cdpId);
+        address usersProxy = subscriptionsContract.getOwner(_cdpId);
 
         monitorProxyContract.callExecute{value: msg.value}(
-            owner,
+            usersProxy,
             mcdSaverTakerAddress,
             abi.encodeWithSelector(BOOST_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0));
 
@@ -109,7 +108,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, GasBurner, StaticV2 {
 
         returnEth();
 
-        logger.Log(address(this), owner, "AutomaticMCDBoost", abi.encode(ratioBefore, ratioAfter));
+        logger.Log(address(this), usersProxy, "AutomaticMCDBoost", abi.encode(ratioBefore, ratioAfter));
     }
 
 /******************* INTERNAL METHODS ********************************/
