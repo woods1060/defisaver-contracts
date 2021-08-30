@@ -191,6 +191,16 @@
 						},
 						{
 							"internalType": "uint256",
+							"name": "totalBorrowVar",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "totalBorrowStab",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
 							"name": "collateralFactor",
 							"type": "uint256"
 						},
@@ -614,7 +624,7 @@
 	],
 	"networks": {
 		"local": {
-			"address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+			"address": "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6",
 			"args": []
 		}
 	}

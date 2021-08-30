@@ -101,7 +101,7 @@ contract KyberWrapperV3 is DSMath, ExchangeInterfaceV3, AdminAuth {
     /// @param _destAddr To token
     /// @param _srcAmount From amount
     /// @return rate Rate
-    function getSellRate(address _srcAddr, address _destAddr, uint _srcAmount, bytes memory _additionalData) public override view returns (uint rate) {
+    function getSellRate(address _srcAddr, address _destAddr, uint _srcAmount, bytes memory _additionalData) public override returns (uint rate) {
         (rate, ) = KyberNetworkProxyInterface(KYBER_INTERFACE)
             .getExpectedRate(ERC20(_srcAddr), ERC20(_destAddr), _srcAmount);
 
@@ -116,7 +116,7 @@ contract KyberWrapperV3 is DSMath, ExchangeInterfaceV3, AdminAuth {
     /// @param _destAddr To token
     /// @param _destAmount To amount
     /// @return rate Rate
-    function getBuyRate(address _srcAddr, address _destAddr, uint _destAmount, bytes memory _additionalData) public override view returns (uint rate) {
+    function getBuyRate(address _srcAddr, address _destAddr, uint _destAmount, bytes memory _additionalData) public override returns (uint rate) {
         uint256 srcRate = getSellRate(_destAddr, _srcAddr, _destAmount, _additionalData);
         uint256 srcAmount = wmul(srcRate, _destAmount);
 

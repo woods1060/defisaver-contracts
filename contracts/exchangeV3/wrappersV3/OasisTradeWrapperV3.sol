@@ -71,7 +71,7 @@ contract OasisTradeWrapperV3 is DSMath, ExchangeInterfaceV3, AdminAuth {
     /// @param _destAddr To token
     /// @param _srcAmount From amount
     /// @return uint Rate
-    function getSellRate(address _srcAddr, address _destAddr, uint _srcAmount, bytes memory _additionalData) public override view returns (uint) {
+    function getSellRate(address _srcAddr, address _destAddr, uint _srcAmount, bytes memory _additionalData) public override returns (uint) {
         address srcAddr = ethToWethAddr(_srcAddr);
         address destAddr = ethToWethAddr(_destAddr);
 
@@ -84,7 +84,7 @@ contract OasisTradeWrapperV3 is DSMath, ExchangeInterfaceV3, AdminAuth {
     /// @param _destAddr To token
     /// @param _destAmount To amount
     /// @return uint Rate
-    function getBuyRate(address _srcAddr, address _destAddr, uint _destAmount, bytes memory _additionalData) public override view returns (uint) {
+    function getBuyRate(address _srcAddr, address _destAddr, uint _destAmount, bytes memory _additionalData) public override returns (uint) {
         address srcAddr = ethToWethAddr(_srcAddr);
         address destAddr = ethToWethAddr(_destAddr);
 

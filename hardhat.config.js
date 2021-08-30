@@ -6,29 +6,32 @@ require("@nomiclabs/hardhat-etherscan");
 module.exports = {
     networks: {
         local: {
-			url: 'http://127.0.0.1:8545',
-            blockNumber: 12321013
-	    },
-        moonnet: {
-            url: process.env.MOON_NET_NODE,
-            accounts: [process.env.PRIV_KEY_DEV],
-            gasPrice: 1000000000
+            url: 'http://127.0.0.1:8545',
+            timeout: 1000000,
+            gasPrice: 70000000000,
+        },
+        fork: {
+            url: `https://rpc.tenderly.co/fork/${process.env.FORK_ID}`,
+            timeout: 1000000,
+        },
+        hardhat: {
+            forking: {
+                url: process.env.ETHEREUM_NODE,
+                timeout: 1000000,
+                // blockNumber: 12068716
+            },
         },
         mainnet: {
-            url: process.env.ALCHEMY_NODE,
-            accounts: [process.env.PRIV_KEY_OWNER],
-            gasPrice: 48510000000
+            url: process.env.ETHEREUM_NODE,
+            accounts: [process.env.PRIV_KEY_MAINNET],
+            gasPrice: 40000000000,
+            timeout: 10000000,
         },
         kovan: {
-            url: process.env.KOVAN_INFURA_ENDPOINT,
+            url: process.env.KOVAN_ETHEREUM_NODE,
+            chainId: 42,
             accounts: [process.env.PRIV_KEY_KOVAN],
-            gasPrice: 1600000000
         },
-        dev: {
-            url: 'http://127.0.0.1:8545',
-            accounts: [process.env.LOCAL_PK],
-            gasPrice: 70000000000
-        }
     },
     solidity: {
         version: "0.6.12",
@@ -37,7 +40,7 @@ module.exports = {
                 enabled: true,
                 runs: 200
             }
-        }
+        },
     },
     paths: {
         sources: "./contracts",
