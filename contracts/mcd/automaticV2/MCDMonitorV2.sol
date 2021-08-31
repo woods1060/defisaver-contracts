@@ -15,14 +15,12 @@ import "./ISubscriptionsV2.sol";
 import "./StaticV2.sol";
 import "./MCDMonitorProxyV2.sol";
 
-
 /// @title Implements logic that allows bots to call Boost and Repay
 contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
+    uint256 public MAX_GAS_PRICE = 800000000000; // 800 gwei
 
-    uint public MAX_GAS_PRICE = 800000000000; // 800 gwei
-
-    uint public REPAY_GAS_COST = 1000000;
-    uint public BOOST_GAS_COST = 1000000;
+    uint256 public REPAY_GAS_COST = 1000000;
+    uint256 public BOOST_GAS_COST = 1000000;
 
     bytes4 public REPAY_SELECTOR = 0xf360ce20;
     bytes4 public BOOST_SELECTOR = 0x8ec2ae25;
@@ -39,14 +37,19 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     Vat public vat = Vat(0x35D1b3F3D7966A1DFe207aa4514C12a259A0492B);
     Spotter public spotter = Spotter(0x65C79fcB50Ca1594B025960e539eD7A9a6D434A3);
 
-    DefisaverLogger public constant logger = DefisaverLogger(0x5c55B921f590a89C1Ebe84dF170E655a82b62126);
+    DefisaverLogger public constant logger =
+        DefisaverLogger(0x5c55B921f590a89C1Ebe84dF170E655a82b62126);
 
     modifier onlyApproved() {
         require(BotRegistry(BOT_REGISTRY_ADDRESS).botList(msg.sender), "Not auth bot");
         _;
     }
 
-    constructor(address _monitorProxy, address _subscriptions, address _mcdSaverTakerAddress) public {
+    constructor(
+        address _monitorProxy,
+        address _subscriptions,
+        address _mcdSaverTakerAddress
+    ) public {
         monitorProxyContract = MCDMonitorProxyV2(_monitorProxy);
         subscriptionsContract = ISubscriptionsV2(_subscriptions);
         mcdSaverTakerAddress = _mcdSaverTakerAddress;
@@ -56,62 +59,89 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     /// @dev If the contract ownes gas token it will try and use it for gas price reduction
     function repayFor(
         DFSExchangeData.ExchangeData memory _exchangeData,
-        uint _cdpId,
-        uint _nextPrice,
+        uint256 _cdpId,
+        uint256 _nextPrice,
         address _joinAddr
     ) public payable onlyApproved {
+        (bool isAllowed, uint256 ratioBefore, string memory reason) = canCall(
+            Method.Repay,
+            _cdpId,
+            _nextPrice
+        );
+        require(isAllowed, reason);
 
-        (bool isAllowed, uint ratioBefore) = canCall(Method.Repay, _cdpId, _nextPrice);
-        require(isAllowed);
-
-        uint gasCost = calcGasCost(REPAY_GAS_COST);
+        uint256 gasCost = calcGasCost(REPAY_GAS_COST);
 
         address usersProxy = subscriptionsContract.getOwner(_cdpId);
 
         monitorProxyContract.callExecute{value: msg.value}(
             usersProxy,
             mcdSaverTakerAddress,
-            abi.encodeWithSelector(REPAY_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0));
+            abi.encodeWithSelector(REPAY_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0)
+        );
 
-
-        (bool isGoodRatio, uint ratioAfter) = ratioGoodAfter(Method.Repay, _cdpId, _nextPrice);
-        require(isGoodRatio);
+        (bool isGoodRatio, uint256 ratioAfter, string memory errorReason) = ratioGoodAfter(
+            Method.Repay,
+            _cdpId,
+            _nextPrice,
+            ratioBefore
+        );
+        require(isGoodRatio, errorReason);
 
         returnEth();
 
-        logger.Log(address(this), usersProxy, "AutomaticMCDRepay", abi.encode(ratioBefore, ratioAfter));
+        logger.Log(
+            address(this),
+            usersProxy,
+            "AutomaticMCDRepay",
+            abi.encode(ratioBefore, ratioAfter)
+        );
     }
 
     /// @notice Bots call this method to boost for user when conditions are met
     /// @dev If the contract ownes gas token it will try and use it for gas price reduction
     function boostFor(
         DFSExchangeData.ExchangeData memory _exchangeData,
-        uint _cdpId,
-        uint _nextPrice,
+        uint256 _cdpId,
+        uint256 _nextPrice,
         address _joinAddr
     ) public payable onlyApproved {
+        (bool isAllowed, uint256 ratioBefore, string memory reason) = canCall(
+            Method.Boost,
+            _cdpId,
+            _nextPrice
+        );
+        require(isAllowed, reason);
 
-        (bool isAllowed, uint ratioBefore) = canCall(Method.Boost, _cdpId, _nextPrice);
-        require(isAllowed);
-
-        uint gasCost = calcGasCost(BOOST_GAS_COST);
+        uint256 gasCost = calcGasCost(BOOST_GAS_COST);
 
         address usersProxy = subscriptionsContract.getOwner(_cdpId);
 
         monitorProxyContract.callExecute{value: msg.value}(
             usersProxy,
             mcdSaverTakerAddress,
-            abi.encodeWithSelector(BOOST_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0));
+            abi.encodeWithSelector(BOOST_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0)
+        );
 
-        (bool isGoodRatio, uint ratioAfter) = ratioGoodAfter(Method.Boost, _cdpId, _nextPrice);
-        require(isGoodRatio);
+        (bool isGoodRatio, uint256 ratioAfter, string memory errorReason) = ratioGoodAfter(
+            Method.Boost,
+            _cdpId,
+            _nextPrice,
+            ratioBefore
+        );
+        require(isGoodRatio, errorReason);
 
         returnEth();
 
-        logger.Log(address(this), usersProxy, "AutomaticMCDBoost", abi.encode(ratioBefore, ratioAfter));
+        logger.Log(
+            address(this),
+            usersProxy,
+            "AutomaticMCDBoost",
+            abi.encode(ratioBefore, ratioAfter)
+        );
     }
 
-/******************* INTERNAL METHODS ********************************/
+    /******************* INTERNAL METHODS ********************************/
     function returnEth() internal {
         // return if some eth left
         if (address(this).balance > 0) {
@@ -119,31 +149,31 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
         }
     }
 
-/******************* STATIC METHODS ********************************/
+    /******************* STATIC METHODS ********************************/
 
     /// @notice Returns an address that owns the CDP
     /// @param _cdpId Id of the CDP
-    function getOwner(uint _cdpId) public view returns(address) {
+    function getOwner(uint256 _cdpId) public view returns (address) {
         return manager.owns(_cdpId);
     }
 
     /// @notice Gets CDP info (collateral, debt)
     /// @param _cdpId Id of the CDP
     /// @param _ilk Ilk of the CDP
-    function getCdpInfo(uint _cdpId, bytes32 _ilk) public view returns (uint, uint) {
+    function getCdpInfo(uint256 _cdpId, bytes32 _ilk) public view returns (uint256, uint256) {
         address urn = manager.urns(_cdpId);
 
-        (uint collateral, uint debt) = vat.urns(_ilk, urn);
-        (,uint rate,,,) = vat.ilks(_ilk);
+        (uint256 collateral, uint256 debt) = vat.urns(_ilk, urn);
+        (, uint256 rate, , , ) = vat.ilks(_ilk);
 
         return (collateral, rmul(debt, rate));
     }
 
     /// @notice Gets a price of the asset
     /// @param _ilk Ilk of the CDP
-    function getPrice(bytes32 _ilk) public view returns (uint) {
-        (, uint mat) = spotter.ilks(_ilk);
-        (,,uint spot,,) = vat.ilks(_ilk);
+    function getPrice(bytes32 _ilk) public view returns (uint256) {
+        (, uint256 mat) = spotter.ilks(_ilk);
+        (, , uint256 spot, , ) = vat.ilks(_ilk);
 
         return rmul(rmul(spot, spotter.par()), mat);
     }
@@ -151,74 +181,96 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     /// @notice Gets CDP ratio
     /// @param _cdpId Id of the CDP
     /// @param _nextPrice Next price for user
-    function getRatio(uint _cdpId, uint _nextPrice) public view returns (uint) {
+    function getRatio(uint256 _cdpId, uint256 _nextPrice) public view returns (uint256) {
         bytes32 ilk = manager.ilks(_cdpId);
-        uint price = (_nextPrice == 0) ? getPrice(ilk) : _nextPrice;
+        uint256 price = (_nextPrice == 0) ? getPrice(ilk) : _nextPrice;
 
-        (uint collateral, uint debt) = getCdpInfo(_cdpId, ilk);
+        (uint256 collateral, uint256 debt) = getCdpInfo(_cdpId, ilk);
 
         if (debt == 0) return 0;
 
-        return rdiv(wmul(collateral, price), debt) / (10 ** 18);
+        return rdiv(wmul(collateral, price), debt) / (10**18);
     }
 
     /// @notice Checks if Boost/Repay could be triggered for the CDP
     /// @dev Called by MCDMonitor to enforce the min/max check
-    function canCall(Method _method, uint _cdpId, uint _nextPrice) public view returns(bool, uint) {
+    function canCall(
+        Method _method,
+        uint256 _cdpId,
+        uint256 _nextPrice
+    )
+        public
+        view
+        returns (
+            bool,
+            uint256,
+            string memory
+        )
+    {
         bool subscribed;
         CdpHolder memory holder;
         (subscribed, holder) = subscriptionsContract.getCdpHolder(_cdpId);
 
         // check if cdp is subscribed
-        if (!subscribed) return (false, 0);
+        if (!subscribed) return (false, 0, "Cdp not sub");
 
         // check if using next price is allowed
-        if (_nextPrice > 0 && !holder.nextPriceEnabled) return (false, 0);
+        if (_nextPrice > 0 && !holder.nextPriceEnabled)
+            return (false, 0, "Next price enabled but not send");
 
         // check if boost and boost allowed
-        if (_method == Method.Boost && !holder.boostEnabled) return (false, 0);
+        if (_method == Method.Boost && !holder.boostEnabled) return (false, 0, "Boost not enabled");
 
         // check if owner is still owner
-        if (getOwner(_cdpId) != holder.owner) return (false, 0);
+        if (getOwner(_cdpId) != holder.owner) return (false, 0, "EOA not subed owner");
 
-        uint currRatio = getRatio(_cdpId, _nextPrice);
+        uint256 currRatio = getRatio(_cdpId, _nextPrice);
 
         if (_method == Method.Repay) {
-            return (currRatio < holder.minRatio, currRatio);
+            return (currRatio < holder.minRatio, currRatio, "");
         } else if (_method == Method.Boost) {
-            return (currRatio > holder.maxRatio, currRatio);
+            return (currRatio > holder.maxRatio, currRatio, "");
         }
     }
 
     /// @dev After the Boost/Repay check if the ratio doesn't trigger another call
-    function ratioGoodAfter(Method _method, uint _cdpId, uint _nextPrice) public view returns(bool, uint) {
+    function ratioGoodAfter(
+        Method _method,
+        uint256 _cdpId,
+        uint256 _nextPrice,
+        uint256 _beforeRatio
+    ) public view returns (bool, uint256, string memory) {
         CdpHolder memory holder;
 
         (, holder) = subscriptionsContract.getCdpHolder(_cdpId);
 
-        uint currRatio = getRatio(_cdpId, _nextPrice);
+        uint256 currRatio = getRatio(_cdpId, _nextPrice);
 
         if (_method == Method.Repay) {
-            return (currRatio < holder.maxRatio, currRatio);
+            if (currRatio >= holder.maxRatio) return (false, currRatio, "Repay increased ratio over max");
+            if (currRatio <= _beforeRatio) return (false, currRatio, "Repay made ratio worse");
         } else if (_method == Method.Boost) {
-            return (currRatio > holder.minRatio, currRatio);
+            if (currRatio <= holder.minRatio) return (false, currRatio, "Boost lowered ratio over min");
+            if (currRatio >= _beforeRatio) return (false, currRatio, "Boost didn't lower ratio");
         }
+
+        return (true, currRatio, "");
     }
 
     /// @notice Calculates gas cost (in Eth) of tx
     /// @dev Gas price is limited to MAX_GAS_PRICE to prevent attack of draining user CDP
     /// @param _gasAmount Amount of gas used for the tx
-    function calcGasCost(uint _gasAmount) public view returns (uint) {
-        uint gasPrice = tx.gasprice <= MAX_GAS_PRICE ? tx.gasprice : MAX_GAS_PRICE;
+    function calcGasCost(uint256 _gasAmount) public view returns (uint256) {
+        uint256 gasPrice = tx.gasprice <= MAX_GAS_PRICE ? tx.gasprice : MAX_GAS_PRICE;
 
         return mul(gasPrice, _gasAmount);
     }
 
-/******************* OWNER ONLY OPERATIONS ********************************/
+    /******************* OWNER ONLY OPERATIONS ********************************/
 
     /// @notice Allows owner to change gas cost for boost operation, but only up to 3 millions
     /// @param _gasCost New gas cost for boost method
-    function changeBoostGasCost(uint _gasCost) public onlyOwner {
+    function changeBoostGasCost(uint256 _gasCost) public onlyOwner {
         require(_gasCost < 3000000);
 
         BOOST_GAS_COST = _gasCost;
@@ -226,7 +278,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
 
     /// @notice Allows owner to change gas cost for repay operation, but only up to 3 millions
     /// @param _gasCost New gas cost for repay method
-    function changeRepayGasCost(uint _gasCost) public onlyOwner {
+    function changeRepayGasCost(uint256 _gasCost) public onlyOwner {
         require(_gasCost < 3000000);
 
         REPAY_GAS_COST = _gasCost;
@@ -234,7 +286,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
 
     /// @notice Allows owner to change max gas price
     /// @param _maxGasPrice New max gas price
-    function changeMaxGasPrice(uint _maxGasPrice) public onlyOwner {
+    function changeMaxGasPrice(uint256 _maxGasPrice) public onlyOwner {
         require(_maxGasPrice < 1000000000000);
 
         MAX_GAS_PRICE = _maxGasPrice;

@@ -136,10 +136,12 @@ contract CompoundSaverHelper is DSMath, Exponential {
 
         address walletAddr = feeRecipient.getFeeAddr();
 
-        if (tokenAddr == ETH_ADDRESS) {
+        if (feeAmount > 0) {
+            if (tokenAddr == ETH_ADDRESS) {
             payable(walletAddr).transfer(feeAmount);
         } else {
             ERC20(tokenAddr).safeTransfer(walletAddr, feeAmount);
+        }
         }
     }
 

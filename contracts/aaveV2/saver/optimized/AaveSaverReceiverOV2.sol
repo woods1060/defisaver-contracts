@@ -28,11 +28,9 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
             (, swappedAmount) = _sell(_exchangeData);
         }
 
-        address user = DSAuth(_proxy).owner();
         swappedAmount -= getGasCost(
             ILendingPoolAddressesProviderV2(_market).getPriceOracle(),
             swappedAmount,
-            user,
             _gasCost,
             _exchangeData.destAddr
         );
@@ -84,7 +82,6 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
         swappedAmount -= getGasCost(
             ILendingPoolAddressesProviderV2(_market).getPriceOracle(),
             swappedAmount,
-            user,
             _gasCost,
             _exchangeData.destAddr
         );

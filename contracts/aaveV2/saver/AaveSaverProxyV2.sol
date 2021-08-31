@@ -33,7 +33,7 @@ contract AaveSaverProxyV2 is DFSExchangeCore, AaveHelperV2, GasBurner {
 		}
 
 		// take gas cost at the end
-		destAmount -= getGasCost(ILendingPoolAddressesProviderV2(_market).getPriceOracle(), destAmount, user, _gasCost, _data.destAddr);
+		destAmount -= getGasCost(ILendingPoolAddressesProviderV2(_market).getPriceOracle(), destAmount, _gasCost, _data.destAddr);
 
 		// payback
 		if (_data.destAddr == WETH_ADDRESS) {
@@ -68,7 +68,7 @@ contract AaveSaverProxyV2 is DFSExchangeCore, AaveHelperV2, GasBurner {
 		ILendingPoolV2(lendingPool).borrow(_data.srcAddr, _data.srcAmount, _rateMode, AAVE_REFERRAL_CODE, address(this));
 
 		// take gas cost at the beginning
-		_data.srcAmount -= getGasCost(ILendingPoolAddressesProviderV2(_market).getPriceOracle(), _data.srcAmount, user, _gasCost, _data.srcAddr);
+		_data.srcAmount -= getGasCost(ILendingPoolAddressesProviderV2(_market).getPriceOracle(), _data.srcAmount, _gasCost, _data.srcAddr);
 
 		uint256 destAmount;
 		if (_data.destAddr != _data.srcAddr) {

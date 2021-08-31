@@ -36,11 +36,10 @@ contract AaveHelperV2 is DSMath {
     /// @notice Calculates the gas cost for transaction
     /// @param _oracleAddress address of oracle used
     /// @param _amount Amount that is converted
-    /// @param _user Actuall user addr not DSProxy
     /// @param _gasCost Ether amount of gas we are spending for tx
     /// @param _tokenAddr token addr. of token we are getting for the fee
     /// @return gasCost The amount we took for the gas cost
-    function getGasCost(address _oracleAddress, uint _amount, address _user, uint _gasCost, address _tokenAddr) internal returns (uint gasCost) {
+    function getGasCost(address _oracleAddress, uint _amount, uint _gasCost, address _tokenAddr) internal returns (uint gasCost) {
         if (_gasCost == 0) return 0;
 
         // in case its ETH, we need to get price for WETH
@@ -57,10 +56,12 @@ contract AaveHelperV2 is DSMath {
 
         address walletAddr = feeRecipient.getFeeAddr();
 
-        if (_tokenAddr == ETH_ADDR) {
+        if (gasCost > 0) {
+            if (_tokenAddr == ETH_ADDR) {
             payable(walletAddr).transfer(gasCost);
         } else {
             ERC20(_tokenAddr).safeTransfer(walletAddr, gasCost);
+        }
         }
     }
 
