@@ -17,20 +17,19 @@ import "./MCDMonitorProxyV2.sol";
 
 /// @title Implements logic that allows bots to call Boost and Repay
 contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
-    uint256 public MAX_GAS_PRICE = 800000000000; // 800 gwei
+    uint256 public MAX_GAS_PRICE = 800 gwei; // 800 gwei
 
-    uint256 public REPAY_GAS_COST = 1000000;
-    uint256 public BOOST_GAS_COST = 1000000;
+    uint256 public REPAY_GAS_COST = 1_000_000;
+    uint256 public BOOST_GAS_COST = 1_000_000;
 
-    bytes4 public REPAY_SELECTOR = 0xf360ce20;
-    bytes4 public BOOST_SELECTOR = 0x8ec2ae25;
+    bytes4 public REPAY_SELECTOR = 0xf360ce20; // repayWithLoan(...)
+    bytes4 public BOOST_SELECTOR = 0x8ec2ae25; // boostWithLoan(...)
 
-    MCDMonitorProxyV2 public monitorProxyContract;
-    ISubscriptionsV2 public subscriptionsContract;
+    MCDMonitorProxyV2 public monitorProxyContract = MCDMonitorProxyV2(0x1816A86C4DA59395522a42b871bf11A4E96A1C7a);
+    ISubscriptionsV2 public subscriptionsContract = ISubscriptionsV2(0xC45d4f6B6bf41b6EdAA58B01c4298B8d9078269a);
     address public mcdSaverTakerAddress;
 
     address public constant BOT_REGISTRY_ADDRESS = 0x637726f8b08a7ABE3aE3aCaB01A80E2d8ddeF77B;
-
     address public constant PROXY_PERMISSION_ADDR = 0x5a4f877CA808Cca3cB7c2A194F80Ab8588FAE26B;
 
     Manager public manager = Manager(0x5ef30b9986345249bc32d8928B7ee64DE9435E39);
@@ -46,13 +45,9 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     }
 
     constructor(
-        address _monitorProxy,
-        address _subscriptions,
-        address _mcdSaverTakerAddress
+        address _newMcdSaverTakerAddress
     ) public {
-        monitorProxyContract = MCDMonitorProxyV2(_monitorProxy);
-        subscriptionsContract = ISubscriptionsV2(_subscriptions);
-        mcdSaverTakerAddress = _mcdSaverTakerAddress;
+        mcdSaverTakerAddress = _newMcdSaverTakerAddress;
     }
 
     /// @notice Bots call this method to repay for user when conditions are met
@@ -63,12 +58,16 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
         uint256 _nextPrice,
         address _joinAddr
     ) public payable onlyApproved {
-        (bool isAllowed, uint256 ratioBefore, string memory reason) = canCall(
+        bool isAllowed;
+        uint256 ratioBefore;
+        string memory errReason;
+
+        (isAllowed, ratioBefore, errReason) = checkPreconditions(
             Method.Repay,
             _cdpId,
             _nextPrice
         );
-        require(isAllowed, reason);
+        require(isAllowed, errReason);
 
         uint256 gasCost = calcGasCost(REPAY_GAS_COST);
 
@@ -80,13 +79,16 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
             abi.encodeWithSelector(REPAY_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0)
         );
 
-        (bool isGoodRatio, uint256 ratioAfter, string memory errorReason) = ratioGoodAfter(
+        bool isGoodRatio;
+        uint256 ratioAfter;
+
+        (isGoodRatio, ratioAfter, errReason) = ratioGoodAfter(
             Method.Repay,
             _cdpId,
             _nextPrice,
             ratioBefore
         );
-        require(isGoodRatio, errorReason);
+        require(isGoodRatio, errReason);
 
         returnEth();
 
@@ -106,12 +108,16 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
         uint256 _nextPrice,
         address _joinAddr
     ) public payable onlyApproved {
-        (bool isAllowed, uint256 ratioBefore, string memory reason) = canCall(
+        bool isAllowed;
+        uint256 ratioBefore;
+        string memory errReason;
+
+        (isAllowed, ratioBefore, errReason) = checkPreconditions(
             Method.Boost,
             _cdpId,
             _nextPrice
         );
-        require(isAllowed, reason);
+        require(isAllowed, errReason);
 
         uint256 gasCost = calcGasCost(BOOST_GAS_COST);
 
@@ -123,13 +129,16 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
             abi.encodeWithSelector(BOOST_SELECTOR, _exchangeData, _cdpId, gasCost, _joinAddr, 0)
         );
 
-        (bool isGoodRatio, uint256 ratioAfter, string memory errorReason) = ratioGoodAfter(
+        bool isGoodRatio;
+        uint256 ratioAfter;
+
+        (isGoodRatio, ratioAfter, errReason) = ratioGoodAfter(
             Method.Boost,
             _cdpId,
             _nextPrice,
             ratioBefore
         );
-        require(isGoodRatio, errorReason);
+        require(isGoodRatio, errReason);
 
         returnEth();
 
@@ -194,7 +203,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
 
     /// @notice Checks if Boost/Repay could be triggered for the CDP
     /// @dev Called by MCDMonitor to enforce the min/max check
-    function canCall(
+    function checkPreconditions(
         Method _method,
         uint256 _cdpId,
         uint256 _nextPrice
@@ -207,9 +216,8 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
             string memory
         )
     {
-        bool subscribed;
-        CdpHolder memory holder;
-        (subscribed, holder) = subscriptionsContract.getCdpHolder(_cdpId);
+
+        (bool subscribed, CdpHolder memory holder) = subscriptionsContract.getCdpHolder(_cdpId);
 
         // check if cdp is subscribed
         if (!subscribed) return (false, 0, "Cdp not sub");
@@ -219,7 +227,8 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
             return (false, 0, "Next price enabled but not send");
 
         // check if boost and boost allowed
-        if (_method == Method.Boost && !holder.boostEnabled) return (false, 0, "Boost not enabled");
+        if (_method == Method.Boost && !holder.boostEnabled)
+            return (false, 0, "Boost not enabled");
 
         // check if owner is still owner
         if (getOwner(_cdpId) != holder.owner) return (false, 0, "EOA not subed owner");
@@ -239,18 +248,26 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
         uint256 _cdpId,
         uint256 _nextPrice,
         uint256 _beforeRatio
-    ) public view returns (bool, uint256, string memory) {
-        CdpHolder memory holder;
+    )
+        public
+        view
+        returns (
+            bool,
+            uint256,
+            string memory
+        )
+    {
 
-        (, holder) = subscriptionsContract.getCdpHolder(_cdpId);
-
+        (, CdpHolder memory holder) = subscriptionsContract.getCdpHolder(_cdpId);
         uint256 currRatio = getRatio(_cdpId, _nextPrice);
 
         if (_method == Method.Repay) {
-            if (currRatio >= holder.maxRatio) return (false, currRatio, "Repay increased ratio over max");
+            if (currRatio >= holder.maxRatio)
+                return (false, currRatio, "Repay increased ratio over max");
             if (currRatio <= _beforeRatio) return (false, currRatio, "Repay made ratio worse");
         } else if (_method == Method.Boost) {
-            if (currRatio <= holder.minRatio) return (false, currRatio, "Boost lowered ratio over min");
+            if (currRatio <= holder.minRatio)
+                return (false, currRatio, "Boost lowered ratio over min");
             if (currRatio >= _beforeRatio) return (false, currRatio, "Boost didn't lower ratio");
         }
 
@@ -271,7 +288,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     /// @notice Allows owner to change gas cost for boost operation, but only up to 3 millions
     /// @param _gasCost New gas cost for boost method
     function changeBoostGasCost(uint256 _gasCost) public onlyOwner {
-        require(_gasCost < 3000000);
+        require(_gasCost < 3_000_000, "Boost gas cost over limit");
 
         BOOST_GAS_COST = _gasCost;
     }
@@ -279,7 +296,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     /// @notice Allows owner to change gas cost for repay operation, but only up to 3 millions
     /// @param _gasCost New gas cost for repay method
     function changeRepayGasCost(uint256 _gasCost) public onlyOwner {
-        require(_gasCost < 3000000);
+        require(_gasCost < 3_000_000, "Repay gas cost over limit");
 
         REPAY_GAS_COST = _gasCost;
     }
@@ -287,7 +304,7 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     /// @notice Allows owner to change max gas price
     /// @param _maxGasPrice New max gas price
     function changeMaxGasPrice(uint256 _maxGasPrice) public onlyOwner {
-        require(_maxGasPrice < 1000000000000);
+        require(_maxGasPrice < 2000 gwei, "Max gas price over the limit");
 
         MAX_GAS_PRICE = _maxGasPrice;
     }

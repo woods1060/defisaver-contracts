@@ -12,25 +12,25 @@ import "../../exchangeV3/DFSExchangeData.sol";
 
 /// @title Contract implements logic of calling boost/repay in the automatic system
 contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
-
     using SafeERC20 for ERC20;
 
-    enum Method { Boost, Repay }
+    enum Method {
+        Boost,
+        Repay
+    }
 
-    uint public REPAY_GAS_TOKEN = 20;
-    uint public BOOST_GAS_TOKEN = 20;
+    uint256 public constant MAX_GAS_PRICE = 800 gwei;
 
-    uint constant public MAX_GAS_PRICE = 500000000000; // 500 gwei
+    uint256 public REPAY_GAS_COST = 1_200_000;
+    uint256 public BOOST_GAS_COST = 1_200_000;
 
-    uint public REPAY_GAS_COST = 1500000;
-    uint public BOOST_GAS_COST = 1000000;
-
-    address public constant GAS_TOKEN_INTERFACE_ADDRESS = 0x0000000000b3F879cb30FE243b4Dfee438691c04;
+    address public constant GAS_TOKEN_INTERFACE_ADDRESS =
+        0x0000000000b3F879cb30FE243b4Dfee438691c04;
     address public constant DEFISAVER_LOGGER = 0x5c55B921f590a89C1Ebe84dF170E655a82b62126;
     address public constant BOT_REGISTRY_ADDRESS = 0x637726f8b08a7ABE3aE3aCaB01A80E2d8ddeF77B;
 
-    CompoundMonitorProxy public compoundMonitorProxy;
-    CompoundSubscriptions public subscriptionsContract;
+    CompoundMonitorProxy public compoundMonitorProxy = CompoundMonitorProxy(0xB1cF8DE8e791E4Ed1Bd86c03E2fc1f14389Cb10a);
+    CompoundSubscriptions public subscriptionsContract = CompoundSubscriptions(0x52015EFFD577E08f498a0CCc11905925D58D6207);
     address public compoundFlashLoanTakerAddress;
 
     DefisaverLogger public logger = DefisaverLogger(DEFISAVER_LOGGER);
@@ -40,13 +40,11 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
         _;
     }
 
-    /// @param _compoundMonitorProxy Proxy contracts that actually is authorized to call DSProxy
-    /// @param _subscriptions Subscriptions contract for Compound positions
-    /// @param _compoundFlashLoanTaker Contract that actually performs Repay/Boost
-    constructor(address _compoundMonitorProxy, address _subscriptions, address _compoundFlashLoanTaker) public {
-        compoundMonitorProxy = CompoundMonitorProxy(_compoundMonitorProxy);
-        subscriptionsContract = CompoundSubscriptions(_subscriptions);
-        compoundFlashLoanTakerAddress = _compoundFlashLoanTaker;
+    /// @param _newCompoundFlashLoanTaker Contract that actually performs Repay/Boost
+    constructor(
+        address _newCompoundFlashLoanTaker
+    ) public {
+        compoundFlashLoanTakerAddress = _newCompoundFlashLoanTaker;
     }
 
     /// @notice Bots call this method to repay for user when conditions are met
@@ -59,9 +57,14 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
         address[2] memory _cAddresses, // cCollAddress, cBorrowAddress
         address _user
     ) public payable onlyApproved {
+        bool isAllowed;
+        uint256 ratioBefore;
+        string memory errReason;
 
-        (bool isAllowed, uint ratioBefore) = canCall(Method.Repay, _user);
-        require(isAllowed); // check if conditions are met
+        CompoundSubscriptions.CompoundHolder memory holder = subscriptionsContract.getHolder(_user);
+
+        (isAllowed, ratioBefore, errReason) = checkPreconditions(holder, Method.Repay, _user);
+        require(isAllowed, errReason); // check if conditions are met
 
         uint256 gasCost = calcGasCost(REPAY_GAS_COST);
 
@@ -76,12 +79,25 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
             )
         );
 
-        (bool isGoodRatio, uint ratioAfter) = ratioGoodAfter(Method.Repay, _user);
-        require(isGoodRatio); // check if the after result of the actions is good
+        bool isGoodRatio;
+        uint256 ratioAfter;
+
+        (isGoodRatio, ratioAfter, errReason) = ratioGoodAfter(
+            holder,
+            Method.Repay,
+            _user,
+            ratioBefore
+        );
+        require(isGoodRatio, errReason); // check if the after result of the actions is good
 
         returnEth();
 
-        logger.Log(address(this), _user, "AutomaticCompoundRepay", abi.encode(ratioBefore, ratioAfter));
+        logger.Log(
+            address(this),
+            _user,
+            "AutomaticCompoundRepay",
+            abi.encode(ratioBefore, ratioAfter)
+        );
     }
 
     /// @notice Bots call this method to boost for user when conditions are met
@@ -93,10 +109,15 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
         DFSExchangeData.ExchangeData memory _exData,
         address[2] memory _cAddresses, // cCollAddress, cBorrowAddress
         address _user
-    ) public payable onlyApproved  {
+    ) public payable onlyApproved {
+        string memory errReason;
+        bool isAllowed;
+        uint256 ratioBefore;
 
-        (bool isAllowed, uint ratioBefore) = canCall(Method.Boost, _user);
-        require(isAllowed); // check if conditions are met
+        CompoundSubscriptions.CompoundHolder memory holder = subscriptionsContract.getHolder(_user);
+
+        (isAllowed, ratioBefore, errReason) = checkPreconditions(holder, Method.Boost, _user);
+        require(isAllowed, errReason); // check if conditions are met
 
         uint256 gasCost = calcGasCost(BOOST_GAS_COST);
 
@@ -111,16 +132,28 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
             )
         );
 
+        bool isGoodRatio;
+        uint256 ratioAfter;
 
-        (bool isGoodRatio, uint ratioAfter) = ratioGoodAfter(Method.Boost, _user);
-        require(isGoodRatio);  // check if the after result of the actions is good
+        (isGoodRatio, ratioAfter, errReason) = ratioGoodAfter(
+            holder,
+            Method.Boost,
+            _user,
+            ratioBefore
+        );
+        require(isGoodRatio, errReason); // check if the after result of the actions is good
 
         returnEth();
 
-        logger.Log(address(this), _user, "AutomaticCompoundBoost", abi.encode(ratioBefore, ratioAfter));
+        logger.Log(
+            address(this),
+            _user,
+            "AutomaticCompoundBoost",
+            abi.encode(ratioBefore, ratioAfter)
+        );
     }
 
-/******************* INTERNAL METHODS ********************************/
+    /******************* INTERNAL METHODS ********************************/
     function returnEth() internal {
         // return if some eth left
         if (address(this).balance > 0) {
@@ -128,94 +161,104 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
         }
     }
 
-/******************* STATIC METHODS ********************************/
+    /******************* STATIC METHODS ********************************/
 
     /// @notice Checks if Boost/Repay could be triggered for the CDP
     /// @dev Called by MCDMonitor to enforce the min/max check
     /// @param _method Type of action to be called
     /// @param _user The actual address that owns the Compound position
     /// @return Boolean if it can be called and the ratio
-    function canCall(Method _method, address _user) public view returns(bool, uint) {
+    function checkPreconditions(
+        CompoundSubscriptions.CompoundHolder memory _holder,
+        Method _method,
+        address _user
+    )
+        public
+        view
+        returns (
+            bool,
+            uint256,
+            string memory
+        )
+    {
         bool subscribed = subscriptionsContract.isSubscribed(_user);
-        CompoundSubscriptions.CompoundHolder memory holder = subscriptionsContract.getHolder(_user);
 
-        // check if cdp is subscribed
-        if (!subscribed) return (false, 0);
+        // check if user is subscribed
+        if (!subscribed) return (false, 0, "User not subed");
 
         // check if boost and boost allowed
-        if (_method == Method.Boost && !holder.boostEnabled) return (false, 0);
+        if (_method == Method.Boost && !_holder.boostEnabled)
+            return (false, 0, "Boost not enabled");
 
-        uint currRatio = getSafetyRatio(_user);
+        uint256 currRatio = getSafetyRatio(_user);
 
         if (_method == Method.Repay) {
-            return (currRatio < holder.minRatio, currRatio);
+            if (currRatio > _holder.minRatio) return (false, 0, "Ration not under min");
         } else if (_method == Method.Boost) {
-            return (currRatio > holder.maxRatio, currRatio);
+            if (currRatio < _holder.maxRatio) return (false, 0, "Ration not over max");
         }
+
+        return (true, currRatio, "");
     }
 
     /// @dev After the Boost/Repay check if the ratio doesn't trigger another call
     /// @param _method Type of action to be called
     /// @param _user The actual address that owns the Compound position
+    /// @param _beforeRatio Ratio before boost
     /// @return Boolean if the recent action preformed correctly and the ratio
-    function ratioGoodAfter(Method _method, address _user) public view returns(bool, uint) {
-        CompoundSubscriptions.CompoundHolder memory holder;
-
-        holder= subscriptionsContract.getHolder(_user);
-
-        uint currRatio = getSafetyRatio(_user);
+    function ratioGoodAfter(
+        CompoundSubscriptions.CompoundHolder memory _holder,
+        Method _method,
+        address _user,
+        uint256 _beforeRatio
+    )
+        public
+        view
+        returns (
+            bool,
+            uint256,
+            string memory
+        )
+    {
+        uint256 currRatio = getSafetyRatio(_user);
 
         if (_method == Method.Repay) {
-            return (currRatio < holder.maxRatio, currRatio);
+            if (currRatio >= _holder.maxRatio)
+                return (false, currRatio, "Repay increased ratio over max");
+            if (currRatio <= _beforeRatio) return (false, currRatio, "Repay made ratio worse");
         } else if (_method == Method.Boost) {
-            return (currRatio > holder.minRatio, currRatio);
+            if (currRatio <= _holder.minRatio)
+                return (false, currRatio, "Boost lowered ratio over min");
+            if (currRatio >= _beforeRatio) return (false, currRatio, "Boost didn't lower ratio");
         }
+
+        return (true, currRatio, "");
     }
 
     /// @notice Calculates gas cost (in Eth) of tx
     /// @dev Gas price is limited to MAX_GAS_PRICE to prevent attack of draining user CDP
     /// @param _gasAmount Amount of gas used for the tx
-    function calcGasCost(uint _gasAmount) public view returns (uint) {
-        uint gasPrice = tx.gasprice <= MAX_GAS_PRICE ? tx.gasprice : MAX_GAS_PRICE;
+    function calcGasCost(uint256 _gasAmount) public view returns (uint256) {
+        uint256 gasPrice = tx.gasprice <= MAX_GAS_PRICE ? tx.gasprice : MAX_GAS_PRICE;
 
         return mul(gasPrice, _gasAmount);
     }
 
-/******************* OWNER ONLY OPERATIONS ********************************/
-
-    /// @notice As the code is new, have a emergancy admin saver proxy change
-    function changeCompoundFlashLoanTaker(address _newCompoundFlashLoanTakerAddress) public onlyAdmin {
-        compoundFlashLoanTakerAddress = _newCompoundFlashLoanTakerAddress;
-    }
+    /******************* OWNER ONLY OPERATIONS ********************************/
 
     /// @notice Allows owner to change gas cost for boost operation, but only up to 3 millions
     /// @param _gasCost New gas cost for boost method
-    function changeBoostGasCost(uint _gasCost) public onlyOwner {
-        require(_gasCost < 3000000);
+    function changeBoostGasCost(uint256 _gasCost) public onlyOwner {
+        require(_gasCost < 3_000_000, "Boost gas cost over limit");
 
         BOOST_GAS_COST = _gasCost;
     }
 
     /// @notice Allows owner to change gas cost for repay operation, but only up to 3 millions
     /// @param _gasCost New gas cost for repay method
-    function changeRepayGasCost(uint _gasCost) public onlyOwner {
-        require(_gasCost < 3000000);
+    function changeRepayGasCost(uint256 _gasCost) public onlyOwner {
+        require(_gasCost < 3_000_000, "Repay gas cost over limit");
 
         REPAY_GAS_COST = _gasCost;
-    }
-
-    /// @notice If any tokens gets stuck in the contract owner can withdraw it
-    /// @param _tokenAddress Address of the ERC20 token
-    /// @param _to Address of the receiver
-    /// @param _amount The amount to be sent
-    function transferERC20(address _tokenAddress, address _to, uint _amount) public onlyOwner {
-        ERC20(_tokenAddress).safeTransfer(_to, _amount);
-    }
-
-    /// @notice If any Eth gets stuck in the contract owner can withdraw it
-    /// @param _to Address of the receiver
-    /// @param _amount The amount to be sent
-    function transferEth(address payable _to, uint _amount) public onlyOwner {
-        _to.transfer(_amount);
     }
 }
