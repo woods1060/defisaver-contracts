@@ -130,7 +130,7 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
 
     function executeOperation(
         address[] calldata,
-        uint256[] calldata amounts,
+        uint256[] calldata,
         uint256[] calldata premiums,
         address initiator,
         bytes calldata params

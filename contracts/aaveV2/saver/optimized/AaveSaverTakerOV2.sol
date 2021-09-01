@@ -18,7 +18,7 @@ contract AaveSaverTakerOV2 is ProxyPermission, DFSExchangeData, AaveHelperV2 {
     address payable public constant AAVE_RECEIVER = 0xeBf9F9b58730Ed347D5ae8155E809158FB64da02;
 
     // leaving _flAmount to be the same as the older version
-    function repay(address _market, ExchangeData memory _data, uint _rateMode, uint256 _gasCost, uint _flAmount) public payable {
+    function repay(address _market, ExchangeData memory _data, uint _rateMode, uint256 _gasCost, uint) public payable {
         address lendingPool = ILendingPoolAddressesProviderV2(_market).getLendingPool();
 
         // send msg.value for exchange to the receiver
@@ -45,7 +45,7 @@ contract AaveSaverTakerOV2 is ProxyPermission, DFSExchangeData, AaveHelperV2 {
     }
 
     // leaving _flAmount to be the same as the older version
-    function boost(address _market, ExchangeData memory _data, uint _rateMode, uint256 _gasCost, uint _flAmount) public payable {
+    function boost(address _market, ExchangeData memory _data, uint _rateMode, uint256 _gasCost, uint) public payable {
         address lendingPool = ILendingPoolAddressesProviderV2(_market).getLendingPool();
 
         // send msg.value for exchange to the receiver
