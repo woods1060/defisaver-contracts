@@ -12,15 +12,9 @@ contract CompoundSaverFlashLoan is FlashLoanReceiverBase, DFSExchangeData {
     address payable public COMPOUND_SAVER_FLASH_PROXY = 0x70093eCADfE1AE5feCd9ecC6E1B010169f9902f3;
     address public constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
-    address public owner;
-
     using SafeERC20 for ERC20;
 
-    constructor()
-        FlashLoanReceiverBase(LENDING_POOL_ADDRESS_PROVIDER)
-        public {
-            owner = msg.sender;
-    }
+    constructor() FlashLoanReceiverBase(LENDING_POOL_ADDRESS_PROVIDER) public {}
 
     /// @notice Called by Aave when sending back the FL amount
     /// @param _reserve The address of the borrowed token
