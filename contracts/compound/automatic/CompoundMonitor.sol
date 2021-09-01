@@ -19,10 +19,10 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
         Repay
     }
 
-    uint256 public constant MAX_GAS_PRICE = 800 gwei;
+    uint256 public MAX_GAS_PRICE = 800 gwei;
 
-    uint256 public REPAY_GAS_COST = 1_200_000;
-    uint256 public BOOST_GAS_COST = 1_200_000;
+    uint256 public REPAY_GAS_COST = 1_500_000;
+    uint256 public BOOST_GAS_COST = 1_000_000;
 
     address public constant GAS_TOKEN_INTERFACE_ADDRESS =
         0x0000000000b3F879cb30FE243b4Dfee438691c04;
@@ -260,5 +260,13 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
         require(_gasCost < 3_000_000, "Repay gas cost over limit");
 
         REPAY_GAS_COST = _gasCost;
+    }
+
+    /// @notice Owner can change the maximum the contract can take for gas price
+    /// @param _maxGasPrice New Max gas price
+    function changeMaxGasPrice(uint256 _maxGasPrice) public onlyOwner {
+        require(_maxGasPrice < 2000 gwei, "Max gas price over the limit");
+
+        MAX_GAS_PRICE = _maxGasPrice;
     }
 }
