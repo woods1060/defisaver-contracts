@@ -194,8 +194,12 @@ contract MCDSaverProxy is DFSExchangeCore, MCDSaverProxyHelper {
     ) internal returns (uint256) {
         uint256 frobAmount = _amount;
 
-        if (Join(_joinAddr).dec() != 18) {
-            frobAmount = _amount * (10**(18 - Join(_joinAddr).dec()));
+        uint256 tokenDecimal = Join(_joinAddr).dec();
+
+        require(tokenDecimal <= 18, "Token decimals too big");
+
+        if (tokenDecimal != 18) {
+            frobAmount = _amount * (10**(18 - tokenDecimal));
         }
 
         Manager(_managerAddr).frob(_cdpId, -toPositiveInt(frobAmount), 0);
@@ -262,7 +266,11 @@ contract MCDSaverProxy is DFSExchangeCore, MCDSaverProxyHelper {
 
         uint256 maxCollateral = sub(collateral, (div(mul(mat, debt), price)));
 
-        uint256 normalizeMaxCollateral = maxCollateral / (10**(18 - Join(_joinAddr).dec()));
+        uint256 tokenDecimal = Join(_joinAddr).dec();
+
+        require(tokenDecimal <= 18, "Token decimals too big");
+
+        uint256 normalizeMaxCollateral = maxCollateral / (10**(18 - tokenDecimal));
 
         // take one percent due to precision issues
         return (normalizeMaxCollateral * 99) / 100;

@@ -31,7 +31,7 @@ contract CompoundFlashLoanTaker is CompoundSaverProxy, ProxyPermission {
             // 0x fee
             COMPOUND_SAVER_FLASH_LOAN.transfer(msg.value);
 
-            uint loanAmount = (_exData.srcAmount - maxColl);
+            uint loanAmount = sub(_exData.srcAmount, maxColl);
             if (loanAmount > availableLiquidity) loanAmount = availableLiquidity;
             bytes memory encoded = packExchangeData(_exData);
             bytes memory paramsData = abi.encode(encoded, _cAddresses, _gasCost, true, address(this));
@@ -64,7 +64,7 @@ contract CompoundFlashLoanTaker is CompoundSaverProxy, ProxyPermission {
             // 0x fee
             COMPOUND_SAVER_FLASH_LOAN.transfer(msg.value);
 
-            uint loanAmount = (_exData.srcAmount - maxBorrow);
+            uint loanAmount = sub(_exData.srcAmount, maxBorrow);
             if (loanAmount > availableLiquidity) loanAmount = availableLiquidity;
             bytes memory paramsData = abi.encode(packExchangeData(_exData), _cAddresses, _gasCost, false, address(this));
 

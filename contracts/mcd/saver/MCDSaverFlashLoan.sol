@@ -83,7 +83,7 @@ contract MCDSaverFlashLoan is MCDSaverProxy, AdminAuth, FlashLoanReceiverBase {
         // Swap
         _exchangeData.srcAmount = sub(
             add(daiDrawn, _saverData.loanAmount),
-            takeFee(_saverData.gasCost, daiDrawn + _saverData.loanAmount)
+            takeFee(_saverData.gasCost, add(daiDrawn, _saverData.loanAmount))
         );
 
         _exchangeData.user = user;

@@ -24,16 +24,18 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
         address _proxy
     ) internal {
         uint256 swappedAmount = _exchangeData.srcAmount;
+
+        // handle same asset boost
         if (_exchangeData.srcAddr != _exchangeData.destAddr) {
             (, swappedAmount) = _sell(_exchangeData);
         }
 
-        swappedAmount -= getGasCost(
+        swappedAmount = sub(swappedAmount, getGasCost(
             ILendingPoolAddressesProviderV2(_market).getPriceOracle(),
             swappedAmount,
             _gasCost,
             _exchangeData.destAddr
-        );
+        ));
 
         // if its eth we need to send it to the basic proxy, if not, we need to approve users proxy to pull tokens
         uint256 msgValue = 0;
@@ -70,7 +72,7 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
         // we will withdraw exactly the srcAmount, as fee we keep before selling
         uint256 valueToWithdraw = _exchangeData.srcAmount;
         // take out the fee wee need to pay and sell the rest
-        _exchangeData.srcAmount = _exchangeData.srcAmount - _aaveFlashlLoanFee;
+        _exchangeData.srcAmount = sub(_exchangeData.srcAmount, _aaveFlashlLoanFee);
 
         uint256 swappedAmount = _exchangeData.srcAmount;
         // don't sell if its the same token
@@ -79,12 +81,12 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
         }
 
         address user = DSAuth(_proxy).owner();
-        swappedAmount -= getGasCost(
+        swappedAmount = sub(swappedAmount, getGasCost(
             ILendingPoolAddressesProviderV2(_market).getPriceOracle(),
             swappedAmount,
             _gasCost,
             _exchangeData.destAddr
-        );
+        ));
 
         // set protocol fee left to eth balance of this address
         // but if destAddr is eth or weth, this also includes that value so we need to substract it
@@ -94,7 +96,7 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
         // if its eth we need to send it to the basic proxy, if not, we need to approve basic proxy to pull tokens
         uint256 msgValue = 0;
         if (_exchangeData.destAddr == ETH_ADDR || _exchangeData.destAddr == WETH_ADDRESS) {
-            protocolFeeLeft -= swappedAmount;
+            protocolFeeLeft = sub(protocolFeeLeft, swappedAmount);
             msgValue = swappedAmount;
         } else {
             ERC20(_exchangeData.destAddr).safeApprove(_proxy, swappedAmount);
@@ -147,11 +149,12 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
         address lendingPool = ILendingPoolAddressesProviderV2(market).getLendingPool();
 
         require(msg.sender == lendingPool, "Callbacks only allowed from Aave");
-        require(initiator == proxy, "initiator isn't proxy");
+        require(initiator == proxy, "Initiator isn't proxy");
 
         ExchangeData memory exData = unpackExchangeData(exchangeDataBytes);
         exData.user = DSAuth(proxy).owner();
         exData.dfsFeeDivider = MANUAL_SERVICE_FEE;
+
         if (BotRegistry(BOT_REGISTRY_ADDRESS).botList(tx.origin)) {
             exData.dfsFeeDivider = AUTOMATIC_SERVICE_FEE;
         }
@@ -181,6 +184,7 @@ contract AaveSaverReceiverOV2 is AaveHelperV2, AdminAuth, DFSExchangeCore {
         return true;
     }
 
+    /// @dev Wrapped in a separate function to avoid stack too deep
     function logEvent(string memory _name, ExchangeData memory _exchangeData, uint _swappedAmount) internal {
         DefisaverLogger(DEFISAVER_LOGGER).Log(
             address(this),

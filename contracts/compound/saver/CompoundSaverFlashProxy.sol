@@ -29,12 +29,12 @@ contract CompoundSaverFlashProxy is DFSExchangeCore, CompoundSaverHelper  {
         enterMarket(_cAddresses[0], _cAddresses[1]);
 
         address payable user = payable(getUserAddress());
-        uint flashBorrowed = _flashLoanData[0] + _flashLoanData[1];
+        uint flashBorrowed = add(_flashLoanData[0], _flashLoanData[1]);
 
         uint maxColl = getMaxCollateral(_cAddresses[0], address(this));
 
         // draw max coll
-        require(CTokenInterface(_cAddresses[0]).redeemUnderlying(maxColl) == 0);
+        require(CTokenInterface(_cAddresses[0]).redeemUnderlying(maxColl) == 0, "Redeem failed");
 
         address collToken = getUnderlyingAddr(_cAddresses[0]);
         address borrowToken = getUnderlyingAddr(_cAddresses[1]);
@@ -43,24 +43,24 @@ contract CompoundSaverFlashProxy is DFSExchangeCore, CompoundSaverHelper  {
 
         if (collToken != borrowToken) {
             // swap max coll + loanAmount
-            _exData.srcAmount = maxColl + _flashLoanData[0];
+            _exData.srcAmount = add(maxColl, _flashLoanData[0]);
             _exData.dfsFeeDivider = isAutomation() ? AUTOMATIC_SERVICE_FEE : MANUAL_SERVICE_FEE;
             _exData.user = user;
 
             (,swapAmount) = _sell(_exData);
 
             // get fee
-            swapAmount -= getGasCost(swapAmount, _gasCost, _cAddresses[1]);
+            swapAmount = sub(swapAmount, getGasCost(swapAmount, _gasCost, _cAddresses[1]));
         } else {
-            swapAmount = (maxColl + _flashLoanData[0]);
-            swapAmount -= getGasCost(swapAmount, _gasCost, _cAddresses[1]);
+            swapAmount = add(maxColl, _flashLoanData[0]);
+            swapAmount = sub(swapAmount, getGasCost(swapAmount, _gasCost, _cAddresses[1]));
         }
 
         // payback debt
         paybackDebt(swapAmount, _cAddresses[1], borrowToken, user);
 
         // draw collateral for loanAmount + loanFee
-        require(CTokenInterface(_cAddresses[0]).redeemUnderlying(flashBorrowed) == 0);
+        require(CTokenInterface(_cAddresses[0]).redeemUnderlying(flashBorrowed) == 0, "Redeem failed");
 
         // repay flash loan
         returnFlashLoan(collToken, flashBorrowed);
@@ -82,11 +82,11 @@ contract CompoundSaverFlashProxy is DFSExchangeCore, CompoundSaverHelper  {
         enterMarket(_cAddresses[0], _cAddresses[1]);
 
         address payable user = payable(getUserAddress());
-        uint flashBorrowed = _flashLoanData[0] + _flashLoanData[1];
+        uint flashBorrowed = add(_flashLoanData[0], _flashLoanData[1]);
 
         // borrow max amount
         uint borrowAmount = getMaxBorrow(_cAddresses[1], address(this));
-        require(CTokenInterface(_cAddresses[1]).borrow(borrowAmount) == 0);
+        require(CTokenInterface(_cAddresses[1]).borrow(borrowAmount) == 0, "Borrow failed");
 
         address collToken = getUnderlyingAddr(_cAddresses[0]);
         address borrowToken = getUnderlyingAddr(_cAddresses[1]);
@@ -95,22 +95,22 @@ contract CompoundSaverFlashProxy is DFSExchangeCore, CompoundSaverHelper  {
 
         if (collToken != borrowToken) {
             // get dfs fee
-            _exData.srcAmount = (borrowAmount + _flashLoanData[0]);
+            _exData.srcAmount = add(borrowAmount, _flashLoanData[0]);
             _exData.dfsFeeDivider = isAutomation() ? AUTOMATIC_SERVICE_FEE : MANUAL_SERVICE_FEE;
             _exData.user = user;
 
             (, swapAmount) = _sell(_exData);
-            swapAmount -= getGasCost(swapAmount, _gasCost, _cAddresses[0]);
+            swapAmount = sub(swapAmount, getGasCost(swapAmount, _gasCost, _cAddresses[0]));
         } else {
-            swapAmount = (borrowAmount + _flashLoanData[0]);
-            swapAmount -= getGasCost(swapAmount, _gasCost, _cAddresses[0]);
+            swapAmount = add(borrowAmount, _flashLoanData[0]);
+            swapAmount = sub(swapAmount, getGasCost(swapAmount, _gasCost, _cAddresses[0]));
         }
 
         // deposit swaped collateral
         depositCollateral(collToken, _cAddresses[0], swapAmount);
 
         // borrow token to repay flash loan
-        require(CTokenInterface(_cAddresses[1]).borrow(flashBorrowed) == 0);
+        require(CTokenInterface(_cAddresses[1]).borrow(flashBorrowed) == 0, "Borrow failed");
 
         // repay flash loan
         returnFlashLoan(borrowToken, flashBorrowed);
@@ -126,7 +126,7 @@ contract CompoundSaverFlashProxy is DFSExchangeCore, CompoundSaverHelper  {
         approveCToken(_collToken, _cCollToken);
 
         if (_collToken != ETH_ADDRESS) {
-            require(CTokenInterface(_cCollToken).mint(_depositAmount) == 0);
+            require(CTokenInterface(_cCollToken).mint(_depositAmount) == 0, "Deposit failed");
         } else {
             CEtherInterface(_cCollToken).mint{value: _depositAmount}(); // reverts on fail
         }

@@ -35,7 +35,7 @@ contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2 {
         _;
     }
 
-    /// @param _newAaveSaverProxy Contract that actually performs Repay/Boost
+    /// @param _newAaveSaverProxy Address of the AaveV2 saver contract
     constructor(address _newAaveSaverProxy) public {
         aaveSaverProxy = _newAaveSaverProxy;
     }
@@ -144,7 +144,6 @@ contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2 {
     /// @dev Called by AaveMonitor to enforce the min/max check
     /// @param _method Type of action to be called
     /// @param _user The actual address that owns the Aave position
-    /// @return Boolean if it can be called and the ratio
     function checkPreconditions(AaveSubscriptionsV2.AaveHolder memory _holder, Method _method, address _user) public view returns(bool, uint, string memory) {
         bool subscribed = subscriptionsContract.isSubscribed(_user);
 
