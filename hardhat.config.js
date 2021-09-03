@@ -1,7 +1,5 @@
 const dotenv           = require('dotenv').config();
-require("@nomiclabs/hardhat-ethers");
-require("@nomiclabs/hardhat-etherscan");
-
+require('@nomiclabs/hardhat-ethers');
 
 module.exports = {
     networks: {

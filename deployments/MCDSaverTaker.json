@@ -535,19 +535,6 @@
 			"type": "function"
 		},
 		{
-			"inputs": [],
-			"name": "gasToken",
-			"outputs": [
-				{
-					"internalType": "contract GasTokenInterface",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
 			"inputs": [
 				{
 					"internalType": "contract Manager",
@@ -1205,7 +1192,7 @@
 	],
 	"networks": {
 		"local": {
-			"address": "0x5302E909d1e93e30F05B5D6Eea766363D14F9892",
+			"address": "0x7bc06c482DEAd17c0e297aFbC32f6e63d3846650",
 			"args": []
 		}
 	}

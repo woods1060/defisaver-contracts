@@ -5,9 +5,11 @@ import "../saver/MCDSaverProxy.sol";
 import "../../exchangeV3/DFSExchangeData.sol";
 import "../../interfaces/ILendingPool.sol";
 
+import "hardhat/console.sol";
+
 contract MCDSaverTaker is MCDSaverProxy {
 
-    address payable public constant MCD_SAVER_FLASH_LOAN = 0xe5bcdCa00Df2911b60B1054f16FaF3f5AaF63b68;
+    address payable public constant MCD_SAVER_FLASH_LOAN = 0x7969c5eD335650692Bc04293B07F5BF2e7A673C0;
     address public constant AAVE_POOL_CORE = 0x3dfd23A6c5E8BbcFc9581d2E864a68feb6a076d3;
 
     ILendingPool public constant lendingPool = ILendingPool(0x398eC7346DcD622eDc5ae82352F02bE94C62d119);
@@ -19,6 +21,7 @@ contract MCDSaverTaker is MCDSaverProxy {
         address _joinAddr,
         ManagerType _managerType
     ) public payable {
+        console.log("boostWithLoan");
         address managerAddr = getManagerAddr(_managerType);
 
         uint256 maxDebt = getMaxDebt(managerAddr, _cdpId, Manager(managerAddr).ilks(_cdpId));
