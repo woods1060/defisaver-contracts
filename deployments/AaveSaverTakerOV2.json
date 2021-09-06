@@ -265,7 +265,7 @@
 				},
 				{
 					"internalType": "uint256",
-					"name": "_flAmount",
+					"name": "",
 					"type": "uint256"
 				}
 			],
@@ -280,19 +280,6 @@
 			"outputs": [
 				{
 					"internalType": "contract IFeeRecipient",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "gasToken",
-			"outputs": [
-				{
-					"internalType": "contract GasTokenInterface",
 					"name": "",
 					"type": "address"
 				}
@@ -537,7 +524,7 @@
 				},
 				{
 					"internalType": "uint256",
-					"name": "_flAmount",
+					"name": "",
 					"type": "uint256"
 				}
 			],
@@ -651,8 +638,8 @@
 		}
 	],
 	"networks": {
-		"mainnet": {
-			"address": "0x363a0989697E4071243b36030e7979Cc86f6A03d",
+		"local": {
+			"address": "0x6F6f570F45833E249e27022648a26F4076F48f78",
 			"args": []
 		}
 	}

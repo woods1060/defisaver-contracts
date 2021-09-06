@@ -60,6 +60,7 @@ const withdrawMcd = async (proxy, vaultId, amount, joinAddr, to) => {
     await proxy["execute(address,bytes)"](mcdWithdrawAddr, functionData, { gasLimit: 3000000 });
 };
 
+
 describe("Mcd-Monitor", function() {
     this.timeout(600000);
 
@@ -75,6 +76,8 @@ describe("Mcd-Monitor", function() {
             "MCD_SAVER_FLASH_LOAN",
             mcdSaverFlashLoan.address
         );
+
+        await hre.run('compile');
 
         mcdSaverTaker = await deployContract("MCDSaverTaker");
 

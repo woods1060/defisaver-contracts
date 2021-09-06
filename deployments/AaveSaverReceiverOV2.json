@@ -322,7 +322,7 @@
 				},
 				{
 					"internalType": "uint256[]",
-					"name": "amounts",
+					"name": "",
 					"type": "uint256[]"
 				},
 				{
@@ -654,8 +654,8 @@
 		}
 	],
 	"networks": {
-		"mainnet": {
-			"address": "0xE0cA50b81442C2Fe2b20D0A0790E904BEc7A307d",
+		"local": {
+			"address": "0x976fcd02f7C4773dd89C309fBF55D5923B4c98a1",
 			"args": []
 		}
 	}

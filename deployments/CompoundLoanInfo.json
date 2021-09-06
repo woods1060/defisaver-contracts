@@ -1,35 +1,9 @@
 {
-	"contractName": "AaveLoanInfoV2",
+	"contractName": "CompoundLoanInfo",
 	"abi": [
 		{
 			"inputs": [],
-			"name": "AAVE_REFERRAL_CODE",
-			"outputs": [
-				{
-					"internalType": "uint16",
-					"name": "",
-					"type": "uint16"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "AUTOMATIC_SERVICE_FEE",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "BOT_REGISTRY_ADDRESS",
+			"name": "CETH_ADDRESS",
 			"outputs": [
 				{
 					"internalType": "address",
@@ -42,7 +16,7 @@
 		},
 		{
 			"inputs": [],
-			"name": "DISCOUNT_ADDR",
+			"name": "ETH_ADDRESS",
 			"outputs": [
 				{
 					"internalType": "address",
@@ -55,88 +29,10 @@
 		},
 		{
 			"inputs": [],
-			"name": "ETH_ADDR",
+			"name": "comp",
 			"outputs": [
 				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "MANUAL_SERVICE_FEE",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "NINETY_NINE_PERCENT_WEI",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "STABLE_ID",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "VARIABLE_ID",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "WETH_ADDRESS",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "feeRecipient",
-			"outputs": [
-				{
-					"internalType": "contract IFeeRecipient",
+					"internalType": "contract ComptrollerInterface",
 					"name": "",
 					"type": "address"
 				}
@@ -147,13 +43,8 @@
 		{
 			"inputs": [
 				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
-				{
 					"internalType": "address[]",
-					"name": "_tokens",
+					"name": "_cTokens",
 					"type": "address[]"
 				}
 			],
@@ -171,13 +62,8 @@
 		{
 			"inputs": [
 				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
-				{
 					"internalType": "address[]",
-					"name": "_tokenAddresses",
+					"name": "_cTokenAddresses",
 					"type": "address[]"
 				}
 			],
@@ -185,11 +71,6 @@
 			"outputs": [
 				{
 					"components": [
-						{
-							"internalType": "address",
-							"name": "aTokenAddress",
-							"type": "address"
-						},
 						{
 							"internalType": "address",
 							"name": "underlyingTokenAddress",
@@ -202,12 +83,17 @@
 						},
 						{
 							"internalType": "uint256",
-							"name": "borrowRateVariable",
+							"name": "borrowRate",
 							"type": "uint256"
 						},
 						{
 							"internalType": "uint256",
-							"name": "borrowRateStable",
+							"name": "exchangeRate",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "marketLiquidity",
 							"type": "uint256"
 						},
 						{
@@ -217,22 +103,7 @@
 						},
 						{
 							"internalType": "uint256",
-							"name": "availableLiquidity",
-							"type": "uint256"
-						},
-						{
-							"internalType": "uint256",
 							"name": "totalBorrow",
-							"type": "uint256"
-						},
-						{
-							"internalType": "uint256",
-							"name": "totalBorrowVar",
-							"type": "uint256"
-						},
-						{
-							"internalType": "uint256",
-							"name": "totalBorrowStab",
 							"type": "uint256"
 						},
 						{
@@ -242,45 +113,30 @@
 						},
 						{
 							"internalType": "uint256",
-							"name": "liquidationRatio",
-							"type": "uint256"
-						},
-						{
-							"internalType": "uint256",
 							"name": "price",
 							"type": "uint256"
 						},
 						{
-							"internalType": "bool",
-							"name": "usageAsCollateralEnabled",
-							"type": "bool"
+							"internalType": "uint256",
+							"name": "compSpeed",
+							"type": "uint256"
 						},
 						{
-							"internalType": "bool",
-							"name": "borrowinEnabled",
-							"type": "bool"
-						},
-						{
-							"internalType": "bool",
-							"name": "stableBorrowRateEnabled",
-							"type": "bool"
+							"internalType": "uint256",
+							"name": "borrowCap",
+							"type": "uint256"
 						}
 					],
-					"internalType": "struct AaveLoanInfoV2.TokenInfoFull[]",
+					"internalType": "struct CompoundLoanInfo.TokenInfoFull[]",
 					"name": "tokens",
 					"type": "tuple[]"
 				}
 			],
-			"stateMutability": "view",
+			"stateMutability": "nonpayable",
 			"type": "function"
 		},
 		{
 			"inputs": [
-				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
 				{
 					"internalType": "address",
 					"name": "_user",
@@ -318,16 +174,11 @@
 						},
 						{
 							"internalType": "uint256[]",
-							"name": "borrowStableAmounts",
-							"type": "uint256[]"
-						},
-						{
-							"internalType": "uint256[]",
-							"name": "borrowVariableAmounts",
+							"name": "borrowAmounts",
 							"type": "uint256[]"
 						}
 					],
-					"internalType": "struct AaveLoanInfoV2.LoanData",
+					"internalType": "struct CompoundLoanInfo.LoanData",
 					"name": "data",
 					"type": "tuple"
 				}
@@ -337,11 +188,6 @@
 		},
 		{
 			"inputs": [
-				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
 				{
 					"internalType": "address[]",
 					"name": "_users",
@@ -379,16 +225,11 @@
 						},
 						{
 							"internalType": "uint256[]",
-							"name": "borrowStableAmounts",
-							"type": "uint256[]"
-						},
-						{
-							"internalType": "uint256[]",
-							"name": "borrowVariableAmounts",
+							"name": "borrowAmounts",
 							"type": "uint256[]"
 						}
 					],
-					"internalType": "struct AaveLoanInfoV2.LoanData[]",
+					"internalType": "struct CompoundLoanInfo.LoanData[]",
 					"name": "loans",
 					"type": "tuple[]"
 				}
@@ -399,13 +240,8 @@
 		{
 			"inputs": [
 				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
-				{
 					"internalType": "address[]",
-					"name": "_tokens",
+					"name": "_cTokens",
 					"type": "address[]"
 				}
 			],
@@ -422,11 +258,6 @@
 		},
 		{
 			"inputs": [
-				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
 				{
 					"internalType": "address",
 					"name": "_user",
@@ -446,11 +277,6 @@
 		},
 		{
 			"inputs": [
-				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
 				{
 					"internalType": "address[]",
 					"name": "_users",
@@ -472,11 +298,6 @@
 			"inputs": [
 				{
 					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
-				{
-					"internalType": "address",
 					"name": "_user",
 					"type": "address"
 				}
@@ -496,58 +317,26 @@
 			"inputs": [
 				{
 					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
-				{
-					"internalType": "address",
 					"name": "_user",
 					"type": "address"
 				},
 				{
 					"internalType": "address[]",
-					"name": "_tokens",
+					"name": "_cTokens",
 					"type": "address[]"
 				}
 			],
 			"name": "getTokenBalances",
 			"outputs": [
 				{
-					"components": [
-						{
-							"internalType": "address",
-							"name": "token",
-							"type": "address"
-						},
-						{
-							"internalType": "uint256",
-							"name": "balance",
-							"type": "uint256"
-						},
-						{
-							"internalType": "uint256",
-							"name": "borrowsStable",
-							"type": "uint256"
-						},
-						{
-							"internalType": "uint256",
-							"name": "borrowsVariable",
-							"type": "uint256"
-						},
-						{
-							"internalType": "uint256",
-							"name": "stableBorrowRate",
-							"type": "uint256"
-						},
-						{
-							"internalType": "bool",
-							"name": "enabledAsCollateral",
-							"type": "bool"
-						}
-					],
-					"internalType": "struct AaveLoanInfoV2.UserToken[]",
-					"name": "userTokens",
-					"type": "tuple[]"
+					"internalType": "uint256[]",
+					"name": "balances",
+					"type": "uint256[]"
+				},
+				{
+					"internalType": "uint256[]",
+					"name": "borrows",
+					"type": "uint256[]"
 				}
 			],
 			"stateMutability": "view",
@@ -556,13 +345,8 @@
 		{
 			"inputs": [
 				{
-					"internalType": "address",
-					"name": "_market",
-					"type": "address"
-				},
-				{
 					"internalType": "address[]",
-					"name": "_tokenAddresses",
+					"name": "_cTokenAddresses",
 					"type": "address[]"
 				}
 			],
@@ -572,7 +356,7 @@
 					"components": [
 						{
 							"internalType": "address",
-							"name": "aTokenAddress",
+							"name": "cTokenAddress",
 							"type": "address"
 						},
 						{
@@ -591,18 +375,18 @@
 							"type": "uint256"
 						}
 					],
-					"internalType": "struct AaveLoanInfoV2.TokenInfo[]",
+					"internalType": "struct CompoundLoanInfo.TokenInfo[]",
 					"name": "tokens",
 					"type": "tuple[]"
 				}
 			],
-			"stateMutability": "view",
+			"stateMutability": "nonpayable",
 			"type": "function"
 		}
 	],
 	"networks": {
 		"local": {
-			"address": "0x19cEcCd6942ad38562Ee10bAfd44776ceB67e923",
+			"address": "0x7bc06c482DEAd17c0e297aFbC32f6e63d3846650",
 			"args": []
 		}
 	}
