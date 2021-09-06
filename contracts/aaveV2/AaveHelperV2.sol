@@ -58,10 +58,10 @@ contract AaveHelperV2 is DSMath {
 
         if (gasCost > 0) {
             if (_tokenAddr == ETH_ADDR) {
-            payable(walletAddr).transfer(gasCost);
-        } else {
-            ERC20(_tokenAddr).safeTransfer(walletAddr, gasCost);
-        }
+                walletAddr.call{value: gasCost}("");
+            } else {
+                ERC20(_tokenAddr).safeTransfer(walletAddr, gasCost);
+            }
         }
     }
 
