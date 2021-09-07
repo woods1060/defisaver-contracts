@@ -156,9 +156,9 @@ contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2 {
         uint currRatio = getSafetyRatio(AAVE_MARKET_ADDRESS, _user);
 
         if (_method == Method.Repay) {
-            if (currRatio > _holder.minRatio) return (false, 0, "Ration not under min");
+            if (currRatio > _holder.minRatio) return (false, 0, "Ratio not under min");
         } else if (_method == Method.Boost) {
-            if (currRatio < _holder.maxRatio) return (false, 0, "Ration not over max");
+            if (currRatio < _holder.maxRatio) return (false, 0, "Ratio not over max");
         }
 
         return (true, currRatio, "");
