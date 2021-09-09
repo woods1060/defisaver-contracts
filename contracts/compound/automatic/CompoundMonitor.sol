@@ -24,8 +24,6 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
     uint256 public REPAY_GAS_COST = 1_500_000;
     uint256 public BOOST_GAS_COST = 1_000_000;
 
-    address public constant GAS_TOKEN_INTERFACE_ADDRESS =
-        0x0000000000b3F879cb30FE243b4Dfee438691c04;
     address public constant DEFISAVER_LOGGER = 0x5c55B921f590a89C1Ebe84dF170E655a82b62126;
     address public constant BOT_REGISTRY_ADDRESS = 0x637726f8b08a7ABE3aE3aCaB01A80E2d8ddeF77B;
 
@@ -184,7 +182,7 @@ contract CompoundMonitor is AdminAuth, DSMath, CompoundSafetyRatio {
         bool subscribed = subscriptionsContract.isSubscribed(_user);
 
         // check if user is subscribed
-        if (!subscribed) return (false, 0, "User not subed");
+        if (!subscribed) return (false, 0, "User not subbed");
 
         // check if boost and boost allowed
         if (_method == Method.Boost && !_holder.boostEnabled)

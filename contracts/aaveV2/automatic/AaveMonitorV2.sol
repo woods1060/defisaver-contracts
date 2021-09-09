@@ -148,7 +148,7 @@ contract AaveMonitorV2 is AdminAuth, DSMath, AaveSafetyRatioV2 {
         bool subscribed = subscriptionsContract.isSubscribed(_user);
 
         // check if cdp is subscribed
-        if (!subscribed) return (false, 0, "User not subed");
+        if (!subscribed) return (false, 0, "User not subbed");
 
         // check if boost and boost allowed
         if (_method == Method.Boost && !_holder.boostEnabled) return (false, 0, "Boost not enabled");

@@ -15,8 +15,6 @@ import "./ISubscriptionsV2.sol";
 import "./StaticV2.sol";
 import "./MCDMonitorProxyV2.sol";
 
-import "hardhat/console.sol";
-
 /// @title Implements logic that allows bots to call Boost and Repay
 contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
     uint256 public MAX_GAS_PRICE = 800 gwei; // 800 gwei
@@ -110,8 +108,6 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
         uint256 _nextPrice,
         address _joinAddr
     ) public payable onlyApproved {
-        console.log("HI");
-
         bool isAllowed;
         uint256 ratioBefore;
         string memory errReason;
@@ -122,8 +118,6 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
             _nextPrice
         );
         require(isAllowed, errReason);
-
-        console.log("precodnidtions passed");
 
         uint256 gasCost = calcGasCost(BOOST_GAS_COST);
 
@@ -228,8 +222,6 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
         // check if cdp is subscribed
         if (!subscribed) return (false, 0, "Cdp not sub");
 
-        console.log("Cdp is sub");
-
         // check if using next price is allowed
         if (_nextPrice > 0 && !holder.nextPriceEnabled)
             return (false, 0, "Next price enabled but not send");
@@ -239,11 +231,9 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
             return (false, 0, "Boost not enabled");
 
         // check if owner is still owner
-        if (getOwner(_cdpId) != holder.owner) return (false, 0, "EOA not subed owner");
+        if (getOwner(_cdpId) != holder.owner) return (false, 0, "EOA not subbed owner");
 
         uint256 currRatio = getRatio(_cdpId, _nextPrice);
-
-        console.log("Before ratio: ", currRatio);
 
         if (_method == Method.Repay) {
             if (currRatio > holder.minRatio) return (false, 0, "Ratio is bigger than min");
@@ -272,8 +262,6 @@ contract MCDMonitorV2 is DSMath, AdminAuth, StaticV2 {
 
         (, CdpHolder memory holder) = subscriptionsContract.getCdpHolder(_cdpId);
         uint256 currRatio = getRatio(_cdpId, _nextPrice);
-
-        console.log("After ratio: ", currRatio);
 
         if (_method == Method.Repay) {
             if (currRatio >= holder.maxRatio)
